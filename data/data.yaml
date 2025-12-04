@@ -1,0 +1,15 @@
+#Template:  sẽ update trong repo
+train: /content/drive/MyDrive/animal-detect-dataset/images/train
+val: /content/drive/MyDrive/animal-detect-dataset/images/val
+
+names:
+  0: cat
+  1: dog
+  2: elephant
+  3: horse
+  4: cow
+  5: lion
+  6: tiger
+  7: bear
+  8: fox
+  9: wolf
