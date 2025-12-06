@@ -1,5 +1,4 @@
-outputs/checkpoints/*
-outputs/results/*
+
 *.pt
 *.pth
 *.onnx
