@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Inference Lab - AI Hub</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-dark": "#101622",
+                        "card-dark": "#1a1d23",
+                        "border-dark": "#232f48",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #111722;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #232f48;
+            border-radius: 3px;
+        }
+
+        /* Custom Range Slider Styling */
+        input[type="range"].slider-thumb::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #135bec;
+            cursor: pointer;
+            border: 3px solid #1a1d23;
+            box-shadow: 0 0 0 1px #135bec;
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"].slider-thumb::-webkit-slider-thumb:hover {
+            background: #1e6fff;
+            box-shadow: 0 0 0 3px rgba(19, 91, 236, 0.3);
+            transform: scale(1.1);
+        }
+
+        input[type="range"].slider-thumb::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #135bec;
+            cursor: pointer;
+            border: 3px solid #1a1d23;
+            box-shadow: 0 0 0 1px #135bec;
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"].slider-thumb::-moz-range-thumb:hover {
+            background: #1e6fff;
+            box-shadow: 0 0 0 3px rgba(19, 91, 236, 0.3);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+
+<body class="bg-background-dark text-white font-display overflow-hidden">
+    <div class="flex h-screen w-full overflow-hidden">
+        <!-- SIDEBAR (Same as Dashboard) -->
+        <aside
+            class="w-80 flex-shrink-0 bg-[#111722] border-r border-border-dark flex flex-col h-full z-20 overflow-hidden">
+            <div class="p-6 pb-2">
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-white">
+                        <span class="material-symbols-outlined text-2xl">hub</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <h1 class="text-white text-xl font-bold leading-none tracking-tight">AI Hub</h1>
+                        <p class="text-[#92a4c9] text-xs font-normal mt-1">v2.4.0 • GPU Active</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 flex flex-col gap-6">
+                <nav class="flex flex-col gap-1">
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#92a4c9] hover:bg-[#232f48] hover:text-white transition-colors"
+                        href="/dashboard">
+                        <span class="material-symbols-outlined">dashboard</span>
+                        <span class="text-sm font-medium">Dashboard</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#232f48] text-white hover:bg-primary/20 transition-colors group"
+                        href="/inference">
+                        <span
+                            class="material-symbols-outlined text-[#92a4c9] group-hover:text-primary transition-colors">play_arrow</span>
+                        <span class="text-sm font-medium">Inference</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#92a4c9] hover:bg-[#232f48] hover:text-white transition-colors"
+                        href="/benchmark">
+                        <span class="material-symbols-outlined">history</span>
+                        <span class="text-sm font-medium">Benchmark History</span>
+                    </a>
+                </nav>
+                <div class="h-px bg-[#232f48] w-full my-1"></div>
+                <div class="flex flex-col gap-6">
+                    <h3 class="text-[#92a4c9] text-xs font-bold uppercase tracking-wider px-2">System Status</h3>
+                    <div class="flex flex-col gap-2 px-2">
+                        <div class="flex justify-between items-end">
+                            <p class="text-white text-sm font-medium">CPU Load</p>
+                            <p id="cpu-percent-inf" class="text-white text-xl font-bold">32%</p>
+                        </div>
+                        <div class="w-full h-1 bg-[#232f48] rounded-full">
+                            <div id="cpu-bar-inf" class="h-full bg-primary rounded-full transition-all duration-300"
+                                style="width: 32%"></div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2 px-2">
+                        <div class="flex justify-between items-end">
+                            <p id="gpu-name-inf" class="text-white text-sm font-medium">GPU Load (RTX 3080)</p>
+                            <p id="gpu-percent-inf" class="text-white text-xl font-bold">87%</p>
+                        </div>
+                        <div class="w-full h-1 bg-[#232f48] rounded-full">
+                            <div id="gpu-bar-inf" class="h-full bg-[#0bda5e] rounded-full transition-all duration-300"
+                                style="width: 87%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 flex flex-col h-full relative overflow-y-auto bg-background-dark">
+            <div class="layout-container flex flex-col w-full max-w-[1400px] mx-auto p-6 md:p-10 gap-8">
+                <header class="flex flex-wrap justify-between items-end gap-4 border-b border-[#232f48] pb-6">
+                    <div class="flex flex-col gap-2">
+                        <h2 class="text-white text-4xl font-black leading-tight tracking-[-0.033em]">Inference Lab</h2>
+                        {% if model_info %}
+                        <p class="text-[#92a4c9] text-base font-normal max-w-2xl">
+                            Running inference with <span class="text-primary font-bold">{{ model_info.name }}</span>
+                            model.
+                        </p>
+                        {% else %}
+                        <p class="text-[#92a4c9] text-base font-normal max-w-2xl">
+                            Please select a model from the dashboard to begin inference.
+                        </p>
+                        {% endif %}
+                    </div>
+                </header>
+
+                {% if model_info %}
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Left: Upload Section -->
+                    <div class="flex flex-col gap-6">
+                        <!-- Model Info Card -->
+                        <div class="bg-card-dark rounded-xl border border-[#232f48] p-6">
+                            <h3 class="text-white text-lg font-bold mb-4">Selected Model</h3>
+                            <div class="flex items-center gap-4 p-4 bg-[#192233] rounded-lg border border-[#232f48]">
+                                <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/20">
+                                    {% if model_info.type == 'detection' %}
+                                    <span class="material-symbols-outlined text-2xl text-primary">view_in_ar</span>
+                                    {% else %}
+                                    <span class="material-symbols-outlined text-2xl text-purple-400">category</span>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-white text-base font-bold">{{ model_info.name }}</p>
+                                    <p class="text-[#92a4c9] text-sm">{{ model_info.type|title }}</p>
+                                </div>
+                                <span
+                                    class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    Ready
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Inference Settings Card -->
+                        <div class="bg-card-dark rounded-xl border border-[#232f48] p-6">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="material-symbols-outlined text-primary">tune</span>
+                                <h3 class="text-white text-lg font-bold">Inference Settings</h3>
+                            </div>
+
+                            <!-- Confidence Threshold -->
+                            <div class="mb-5">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-[#92a4c9] text-sm font-medium">Confidence Threshold</label>
+                                    <span id="conf-value" class="text-white text-sm font-bold font-mono">0.50</span>
+                                </div>
+                                <input type="range" id="conf-threshold" min="0" max="100" value="50"
+                                    class="w-full h-2 bg-[#232f48] rounded-lg appearance-none cursor-pointer slider-thumb"
+                                    style="background: linear-gradient(to right, #135bec 0%, #135bec 50%, #232f48 50%, #232f48 100%);">
+                                <div class="flex justify-between text-xs text-[#92a4c9] mt-1">
+                                    <span>0%</span>
+                                    <span>100%</span>
+                                </div>
+                            </div>
+
+                            <!-- Top-K Results (Classification only) -->
+                            <div id="topk-setting"
+                                class="mb-5 {% if model_info.type == 'detection' %}hidden{% endif %}">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-[#92a4c9] text-sm font-medium">Top-K Results</label>
+                                    <span id="topk-value" class="text-white text-sm font-bold font-mono">5</span>
+                                </div>
+                                <input type="range" id="topk-slider" min="1" max="10" value="5"
+                                    class="w-full h-2 bg-[#232f48] rounded-lg appearance-none cursor-pointer slider-thumb"
+                                    style="background: linear-gradient(to right, #135bec 0%, #135bec 50%, #232f48 50%, #232f48 100%);">
+                                <div class="flex justify-between text-xs text-[#92a4c9] mt-1">
+                                    <span>1</span>
+                                    <span>10</span>
+                                </div>
+                            </div>
+
+                            <!-- IoU Threshold (Detection only) -->
+                            <div id="iou-setting"
+                                class="mb-5 {% if model_info.type == 'classification' %}hidden{% endif %}">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-[#92a4c9] text-sm font-medium">IoU Threshold (NMS)</label>
+                                    <span id="iou-value" class="text-white text-sm font-bold font-mono">0.45</span>
+                                </div>
+                                <input type="range" id="iou-threshold" min="0" max="100" value="45"
+                                    class="w-full h-2 bg-[#232f48] rounded-lg appearance-none cursor-pointer slider-thumb"
+                                    style="background: linear-gradient(to right, #135bec 0%, #135bec 45%, #232f48 45%, #232f48 100%);">
+                                <div class="flex justify-between text-xs text-[#92a4c9] mt-1">
+                                    <span>0.0</span>
+                                    <span>1.0</span>
+                                </div>
+                            </div>
+
+                            <!-- Max Detections (Detection only) -->
+                            <div id="maxdet-setting"
+                                class="{% if model_info.type == 'classification' %}hidden{% endif %}">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label class="text-[#92a4c9] text-sm font-medium">Max Detections</label>
+                                    <span id="maxdet-value" class="text-white text-sm font-bold font-mono">100</span>
+                                </div>
+                                <input type="range" id="maxdet-slider" min="10" max="300" step="10" value="100"
+                                    class="w-full h-2 bg-[#232f48] rounded-lg appearance-none cursor-pointer slider-thumb"
+                                    style="background: linear-gradient(to right, #135bec 0%, #135bec 31%, #232f48 31%, #232f48 100%);">
+                                <div class="flex justify-between text-xs text-[#92a4c9] mt-1">
+                                    <span>10</span>
+                                    <span>300</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Input Source Selection -->
+                        <div class="bg-card-dark rounded-xl border border-[#232f48] p-6">
+                            <h3 class="text-white text-lg font-bold mb-4">Input Source</h3>
+
+                            <!-- Tab Buttons -->
+                            <div class="flex gap-2 mb-4">
+                                <button id="tab-upload"
+                                    class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">image</span>
+                                    Upload Image
+                                </button>
+                                <button id="tab-camera"
+                                    class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#232f48] hover:bg-[#2f3e5c] text-white text-sm font-semibold transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">videocam</span>
+                                    Camera
+                                </button>
+                            </div>
+
+                            <!-- Upload Panel -->
+                            <div id="upload-panel">
+                                <label
+                                    class="flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-[#232f48] hover:border-primary/50 bg-[#192233]/30 hover:bg-[#192233]/60 transition-all px-4 py-8 cursor-pointer">
+                                    <input type="file" id="imageInput" accept="image/*" class="hidden" />
+                                    <div class="size-12 rounded-full bg-[#232f48] flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-[#92a4c9]">image</span>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-white text-sm font-medium mb-1">Click to upload image</p>
+                                        <p class="text-[#92a4c9] text-xs">JPG, PNG, WEBP up to 10MB</p>
+                                    </div>
+                                </label>
+                                <div id="imagePreview" class="mt-4 hidden">
+                                    <img id="previewImg" class="w-full rounded-lg border border-[#232f48]" />
+                                </div>
+                            </div>
+
+                            <!-- Camera Panel -->
+                            <div id="camera-panel" class="hidden">
+                                <div class="relative rounded-xl overflow-hidden border border-[#232f48] bg-black">
+                                    <video id="cameraVideo" autoplay playsinline class="w-full h-auto"></video>
+                                    <canvas id="cameraCanvas" class="hidden"></canvas>
+
+                                    <!-- Camera Overlay Info -->
+                                    <div class="absolute top-3 left-3 flex gap-2">
+                                        <div
+                                            class="px-2 py-1 rounded bg-black/70 backdrop-blur-sm border border-emerald-500/50">
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                <span class="text-emerald-400 text-xs font-semibold">LIVE</span>
+                                            </div>
+                                        </div>
+                                        <div id="fps-counter"
+                                            class="px-2 py-1 rounded bg-black/70 backdrop-blur-sm border border-primary/50">
+                                            <span class="text-primary text-xs font-mono font-semibold">0 FPS</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Camera Controls -->
+                                <div class="mt-4 flex gap-3">
+                                    <button id="startCamera"
+                                        class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors">
+                                        <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                                        Start Camera
+                                    </button>
+                                    <button id="stopCamera"
+                                        class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors hidden">
+                                        <span class="material-symbols-outlined text-[18px]">stop</span>
+                                        Stop Camera
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Run Button -->
+                        <button id="runInference" disabled
+                            class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-blue-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-all shadow-lg">
+                            <span class="material-symbols-outlined">play_arrow</span>
+                            <span>Run Inference</span>
+                        </button>
+                    </div>
+
+                    <!-- Right: Results Section -->
+                    <div class="bg-card-dark rounded-xl border border-[#232f48] p-6">
+                        <h3 class="text-white text-lg font-bold mb-4">Results</h3>
+                        <div id="resultsContainer"
+                            class="flex flex-col items-center justify-center min-h-[400px] text-[#92a4c9]">
+                            <span class="material-symbols-outlined text-6xl opacity-20 mb-4">smart_toy</span>
+                            <p>Upload an image and click "Run Inference"</p>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center min-h-[400px] text-center">
+                    <span
+                        class="material-symbols-outlined text-8xl text-[#92a4c9] opacity-20 mb-6">model_training</span>
+                    <h3 class="text-white text-2xl font-bold mb-2">No Model Selected</h3>
+                    <p class="text-[#92a4c9] mb-6">Please select a model from the dashboard to start inference.</p>
+                    <a href="/dashboard"
+                        class="px-6 py-3 bg-primary hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors">
+                        Go to Dashboard
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let imageFile = null;
+        {% if model_info %}
+        const modelId = "{{ model_info.id }}";
+        const modelType = "{{ model_info.type }}";
+        {% else %}
+        const modelId = "";
+        const modelType = "";
+        {% endif %}
+
+        // Inference settings
+        let inferenceSettings = {
+            confidence: 0.5,
+            topK: 5,
+            iouThreshold: 0.45,
+            maxDetections: 100
+        };
+
+        // ========== SLIDER HANDLERS ==========
+        // Helper function to update slider gradient
+        function updateSliderGradient(slider, percentage) {
+            slider.style.background = `linear-gradient(to right, #135bec 0%, #135bec ${percentage}%, #232f48 ${percentage}%, #232f48 100%)`;
+        }
+
+        // Confidence Threshold Slider
+        const confSlider = document.getElementById('conf-threshold');
+        const confValue = document.getElementById('conf-value');
+        if (confSlider) {
+            confSlider.addEventListener('input', function () {
+                const value = this.value / 100;
+                inferenceSettings.confidence = value;
+                confValue.textContent = value.toFixed(2);
+                updateSliderGradient(this, this.value);
+            });
+        }
+
+        // Top-K Slider (Classification only)
+        const topkSlider = document.getElementById('topk-slider');
+        const topkValue = document.getElementById('topk-value');
+        if (topkSlider) {
+            topkSlider.addEventListener('input', function () {
+                inferenceSettings.topK = parseInt(this.value);
+                topkValue.textContent = this.value;
+                const percentage = ((this.value - 1) / 9) * 100; // 1-10 range
+                updateSliderGradient(this, percentage);
+            });
+        }
+
+        // IoU Threshold Slider (Detection only)
+        const iouSlider = document.getElementById('iou-threshold');
+        const iouValue = document.getElementById('iou-value');
+        if (iouSlider) {
+            iouSlider.addEventListener('input', function () {
+                const value = this.value / 100;
+                inferenceSettings.iouThreshold = value;
+                iouValue.textContent = value.toFixed(2);
+                updateSliderGradient(this, this.value);
+            });
+        }
+
+        // Max Detections Slider (Detection only)
+        const maxdetSlider = document.getElementById('maxdet-slider');
+        const maxdetValue = document.getElementById('maxdet-value');
+        if (maxdetSlider) {
+            maxdetSlider.addEventListener('input', function () {
+                inferenceSettings.maxDetections = parseInt(this.value);
+                maxdetValue.textContent = this.value;
+                const percentage = ((this.value - 10) / 290) * 100; // 10-300 range
+                updateSliderGradient(this, percentage);
+            });
+        }
+
+        // ========== TAB SWITCHING ==========
+        const tabUpload = document.getElementById('tab-upload');
+        const tabCamera = document.getElementById('tab-camera');
+        const uploadPanel = document.getElementById('upload-panel');
+        const cameraPanel = document.getElementById('camera-panel');
+        const runButton = document.getElementById('runInference');
+
+        let currentMode = 'upload'; // 'upload' or 'camera'
+
+        tabUpload?.addEventListener('click', function () {
+            currentMode = 'upload';
+            // Update tab styles
+            tabUpload.classList.remove('bg-[#232f48]', 'hover:bg-[#2f3e5c]');
+            tabUpload.classList.add('bg-primary');
+            tabCamera.classList.remove('bg-primary');
+            tabCamera.classList.add('bg-[#232f48]', 'hover:bg-[#2f3e5c]');
+
+            // Show/hide panels
+            uploadPanel.classList.remove('hidden');
+            cameraPanel.classList.add('hidden');
+
+            // Stop camera if running
+            stopCameraStream();
+
+            // Update run button
+            runButton.querySelector('span:last-child').textContent = 'Run Inference';
+            checkReadyToRun();
+        });
+
+        tabCamera?.addEventListener('click', function () {
+            currentMode = 'camera';
+            // Update tab styles
+            tabCamera.classList.remove('bg-[#232f48]', 'hover:bg-[#2f3e5c]');
+            tabCamera.classList.add('bg-primary');
+            tabUpload.classList.remove('bg-primary');
+            tabUpload.classList.add('bg-[#232f48]', 'hover:bg-[#2f3e5c]');
+
+            // Show/hide panels
+            cameraPanel.classList.remove('hidden');
+            uploadPanel.classList.add('hidden');
+
+            // Update run button
+            runButton.querySelector('span:last-child').textContent = 'Start Real-time Inference';
+            runButton.disabled = true; // Disabled until camera starts
+        });
+
+        // ========== CAMERA FUNCTIONALITY ==========
+        let cameraStream = null;
+        let cameraRunning = false;
+        let inferenceInterval = null;
+        let lastFrameTime = Date.now();
+        let frameCount = 0;
+        let fps = 0;
+
+        const videoElement = document.getElementById('cameraVideo');
+        const canvasElement = document.getElementById('cameraCanvas');
+        const startCameraBtn = document.getElementById('startCamera');
+        const stopCameraBtn = document.getElementById('stopCamera');
+        const fpsCounter = document.getElementById('fps-counter');
+
+        async function startCameraStream() {
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'user'
+                    }
+                });
+                videoElement.srcObject = cameraStream;
+                cameraRunning = true;
+
+                // Update button visibility
+                startCameraBtn.classList.add('hidden');
+                stopCameraBtn.classList.remove('hidden');
+
+                // Enable run button
+                runButton.disabled = false;
+
+                // Start FPS counter
+                updateFPS();
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Failed to access camera. Please check permissions.');
+            }
+        }
+
+        function stopCameraStream() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+                videoElement.srcObject = null;
+            }
+            cameraRunning = false;
+
+            // Stop real-time inference if running
+            stopRealTimeInference();
+
+            // Update button visibility
+            startCameraBtn.classList.remove('hidden');
+            stopCameraBtn.classList.add('hidden');
+
+            // Disable run button
+            runButton.disabled = true;
+
+            // Reset FPS
+            fps = 0;
+            frameCount = 0;
+            if (fpsCounter) {
+                fpsCounter.querySelector('span').textContent = '0 FPS';
+            }
+        }
+
+        function updateFPS() {
+            if (!cameraRunning) return;
+
+            const now = Date.now();
+            const elapsed = (now - lastFrameTime) / 1000;
+
+            if (elapsed >= 1) {
+                fps = Math.round(frameCount / elapsed);
+                if (fpsCounter) {
+                    fpsCounter.querySelector('span').textContent = `${fps} FPS`;
+                }
+                frameCount = 0;
+                lastFrameTime = now;
+            }
+
+            requestAnimationFrame(updateFPS);
+        }
+
+        startCameraBtn?.addEventListener('click', startCameraStream);
+        stopCameraBtn?.addEventListener('click', stopCameraStream);
+
+        // ========== IMAGE UPLOAD ==========
+        // Image upload handler
+        document.getElementById('imageInput')?.addEventListener('change', function (e) {
+            imageFile = e.target.files[0];
+            if (imageFile) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    document.getElementById('previewImg').src = event.target.result;
+                    document.getElementById('imagePreview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(imageFile);
+                checkReadyToRun();
+            }
+        });
+
+        function checkReadyToRun() {
+            const btn = document.getElementById('runInference');
+            if (currentMode === 'upload' && imageFile && modelId) {
+                btn.disabled = false;
+            } else if (currentMode === 'camera' && cameraRunning && modelId) {
+                btn.disabled = false;
+            } else {
+                btn.disabled = true;
+            }
+        }
+
+        // ========== INFERENCE EXECUTION ==========
+        let isRealTimeRunning = false;
+
+        // Run inference
+        document.getElementById('runInference')?.addEventListener('click', async function () {
+            if (currentMode === 'upload') {
+                // Single image inference
+                await runSingleInference();
+            } else if (currentMode === 'camera') {
+                // Toggle real-time inference
+                if (isRealTimeRunning) {
+                    stopRealTimeInference();
+                } else {
+                    startRealTimeInference();
+                }
+            }
+        });
+
+        async function runSingleInference() {
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '<div class="flex items-center gap-3"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div><p>Running inference...</p></div>';
+
+            const formData = new FormData();
+            formData.append('model_id', modelId);
+            formData.append('image', imageFile);
+
+            // Add inference settings
+            formData.append('confidence_threshold', inferenceSettings.confidence);
+            formData.append('top_k', inferenceSettings.topK);
+            formData.append('iou_threshold', inferenceSettings.iouThreshold);
+            formData.append('max_detections', inferenceSettings.maxDetections);
+
+            try {
+                const response = await fetch('/api/inference/', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayResults(data);
+                } else {
+                    resultsContainer.innerHTML = `<div class="text-red-400 text-center"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Error: ${data.error}</p></div>`;
+                }
+            } catch (error) {
+                resultsContainer.innerHTML = `<div class="text-red-400 text-center"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Error: ${error.message}</p></div>`;
+            }
+        }
+
+        function startRealTimeInference() {
+            isRealTimeRunning = true;
+            runButton.querySelector('span:last-child').textContent = 'Stop Real-time Inference';
+            runButton.classList.remove('bg-primary', 'hover:bg-blue-600');
+            runButton.classList.add('bg-red-600', 'hover:bg-red-700');
+
+            // Run inference loop
+            runRealTimeInference();
+        }
+
+        function stopRealTimeInference() {
+            isRealTimeRunning = false;
+            if (inferenceInterval) {
+                clearTimeout(inferenceInterval);
+                inferenceInterval = null;
+            }
+            runButton.querySelector('span:last-child').textContent = 'Start Real-time Inference';
+            runButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+            runButton.classList.add('bg-primary', 'hover:bg-blue-600');
+        }
+
+        async function runRealTimeInference() {
+            if (!isRealTimeRunning || !cameraRunning) return;
+
+            try {
+                // Capture frame from video
+                const canvas = canvasElement;
+                const video = videoElement;
+
+                // Reduce resolution for faster processing (640px width)
+                const targetWidth = 640;
+                const scale = targetWidth / video.videoWidth;
+                canvas.width = targetWidth;
+                canvas.height = video.videoHeight * scale;
+
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                // Convert canvas to blob with lower quality for speed
+                canvas.toBlob(async (blob) => {
+                    if (!blob || !isRealTimeRunning) return;
+
+                    const formData = new FormData();
+                    formData.append('model_id', modelId);
+                    formData.append('image', blob, 'frame.jpg');
+                    formData.append('confidence_threshold', inferenceSettings.confidence);
+                    formData.append('top_k', inferenceSettings.topK);
+                    formData.append('iou_threshold', inferenceSettings.iouThreshold);
+                    formData.append('max_detections', inferenceSettings.maxDetections);
+
+                    try {
+                        const response = await fetch('/api/inference/', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            displayResults(data);
+                            frameCount++; // Increment for FPS counter
+                        }
+                    } catch (error) {
+                        console.error('Inference error:', error);
+                    }
+
+                    // Run next inference immediately (no artificial delay!)
+                    if (isRealTimeRunning) {
+                        runRealTimeInference();
+                    }
+                }, 'image/jpeg', 0.6); // Lower quality = faster transfer
+
+            } catch (error) {
+                console.error('Frame capture error:', error);
+                if (isRealTimeRunning) {
+                    // Retry after short delay on error
+                    setTimeout(runRealTimeInference, 100);
+                }
+            }
+        }
+
+        function displayResults(data) {
+            const resultsContainer = document.getElementById('resultsContainer');
+
+            // Display results based on model type
+            let html = `
+                <div class="w-full">
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-[#192233] rounded-lg p-4 border border-[#232f48]">
+                            <p class="text-[#92a4c9] text-xs uppercase mb-1">Inference Time</p>
+                            <p class="text-2xl font-bold text-white font-mono">${data.inference_time_ms}<span class="text-sm text-[#92a4c9] ml-1">ms</span></p>
+                        </div>
+                        <div class="bg-[#192233] rounded-lg p-4 border border-[#232f48]">
+                            <p class="text-[#92a4c9] text-xs uppercase mb-1">Model Type</p>
+                            <p class="text-lg font-bold text-white capitalize">${data.model_type}</p>
+                        </div>
+                    </div>
+            `;
+
+            if (data.model_type === 'classification') {
+                // Classification results
+                if (data.top_prediction) {
+                    html += `
+                        <div class="bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-lg p-4 border border-primary/30 mb-4">
+                            <p class="text-[#92a4c9] text-xs uppercase mb-2">Top Prediction</p>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-white text-2xl font-bold">${data.top_prediction.class_name || 'Class ' + data.top_prediction.class_id}</p>
+                                    <p class="text-[#92a4c9] text-sm">Class ID: ${data.top_prediction.class_id}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-primary text-3xl font-bold">${data.top_prediction.confidence.toFixed(2)}%</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (data.predictions && data.predictions.length > 0) {
+                    html += `<h4 class="text-white font-bold mb-3">Top ${data.predictions.length} Predictions:</h4><div class="space-y-2">`;
+                    data.predictions.forEach((pred, idx) => {
+                        const isTop = idx === 0;
+                        const isBelowThreshold = pred.below_threshold || false;
+                        const opacity = isBelowThreshold ? 'opacity-50' : '';
+                        const borderColor = isTop ? 'border-primary/50' : (isBelowThreshold ? 'border-yellow-500/30' : 'border-[#232f48]');
+
+                        html += `
+                            <div class="flex items-center gap-3 p-3 bg-[#192233] rounded-lg border ${borderColor} ${opacity} transition-opacity">
+                                <span class="text-[#92a4c9] font-mono text-sm font-bold">#${idx + 1}</span>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <p class="text-white font-medium">${pred.class_name || 'Class ' + pred.class_id}</p>
+                                        ${isBelowThreshold ? '<span class="material-symbols-outlined text-yellow-500 text-sm" title="Below confidence threshold">warning</span>' : ''}
+                                    </div>
+                                    <div class="w-full bg-[#232f48] rounded-full h-2 mt-1">
+                                        <div class="${isBelowThreshold ? 'bg-yellow-500' : 'bg-primary'} h-2 rounded-full transition-all" style="width: ${pred.confidence}%"></div>
+                                    </div>
+                                </div>
+                                <span class="${isBelowThreshold ? 'text-yellow-500' : 'text-primary'} font-bold">${pred.confidence.toFixed(2)}%</span>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+            } else if (data.model_type === 'detection') {
+                // Detection results
+                html += `
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h4 class="text-white font-bold">Detected Objects</h4>
+                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-primary/20 text-primary border border-primary/30">
+                                ${data.num_detections} objects
+                            </span>
+                        </div>
+                        ${data.annotated_image ? `
+                            <div class="rounded-lg overflow-hidden border border-[#232f48] mb-4">
+                                <img src="data:image/jpeg;base64,${data.annotated_image}" class="w-full" alt="Annotated result" />
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                if (data.detections && data.detections.length > 0) {
+                    html += '<h4 class="text-white font-bold mb-3">Detection Details:</h4><div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">';
+                    data.detections.forEach((det, idx) => {
+                        html += `
+                            <div class="flex items-center gap-3 p-3 bg-[#192233] rounded-lg border border-[#232f48]">
+                                <span class="text-[#92a4c9] font-mono text-sm">#${idx + 1}</span>
+                                <div class="flex-1">
+                                    <p class="text-white font-medium">${det.class_name || 'Class ' + det.class_id}</p>
+                                    <p class="text-[#92a4c9] text-xs">BBox: [${det.bbox.map(v => v.toFixed(0)).join(', ')}]</p>
+                                </div>
+                                <span class="text-primary font-bold">${det.confidence.toFixed(2)}%</span>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+            }
+
+            html += '</div>';
+            resultsContainer.innerHTML = html;
+        }
+
+
+        // System metrics update
+        async function updateSystemMetrics() {
+            try {
+                const response = await fetch('/api/system-metrics/');
+                const data = await response.json();
+
+                document.getElementById('cpu-percent-inf').textContent = data.cpu_percent + '%';
+                document.getElementById('cpu-bar-inf').style.width = data.cpu_percent + '%';
+
+                if (data.gpu.name !== 'N/A') {
+                    document.getElementById('gpu-name-inf').textContent = 'GPU Load (' + data.gpu.name + ')';
+                    document.getElementById('gpu-percent-inf').textContent = data.gpu.load + '%';
+                    document.getElementById('gpu-bar-inf').style.width = data.gpu.load + '%';
+                }
+            } catch (error) {
+                console.error('Error fetching system metrics:', error);
+            }
+        }
+
+        updateSystemMetrics();
+        setInterval(updateSystemMetrics, 2000);
+    </script>
+</body>
+
+</html>

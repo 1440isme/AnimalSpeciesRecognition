@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Benchmarking Results - AI Hub</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111722",
+                        "surface-dark": "#232f48",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for table */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111722;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #232f48;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3b4c6b;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-x-hidden flex flex-col min-h-screen">
+    <!-- TopNavBar -->
+    <header
+        class="sticky top-0 z-50 w-full border-b border-solid border-slate-200 dark:border-[#232f48] bg-white dark:bg-[#111722] px-4 md:px-10 py-3">
+        <div class="flex items-center justify-between whitespace-nowrap">
+            <div class="flex items-center gap-4 text-slate-900 dark:text-white">
+                <div class="size-8 flex items-center justify-center rounded-lg bg-primary text-white">
+                    <span class="material-symbols-outlined text-xl">hub</span>
+                </div>
+                <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">AI Hub</h2>
+                <div
+                    class="hidden md:flex items-center px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
+                    <div class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></div>
+                    <span class="text-xs font-medium text-green-500">System Ready</span>
+                </div>
+            </div>
+            <div class="flex flex-1 justify-end gap-8 items-center">
+                <div class="hidden md:flex items-center gap-9">
+                    <a class="text-slate-600 dark:text-slate-200 text-sm font-medium hover:text-primary transition-colors"
+                        href="/dashboard">Models</a>
+                    <a class="text-primary text-sm font-medium" href="/benchmark">Benchmarks</a>
+                    <a class="text-slate-600 dark:text-slate-200 text-sm font-medium hover:text-primary transition-colors"
+                        href="/inference">Inference</a>
+                    <a class="text-slate-600 dark:text-slate-200 text-sm font-medium hover:text-primary transition-colors"
+                        href="#">Settings</a>
+                </div>
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-200 dark:border-[#232f48]"
+                    data-alt="User profile avatar showing abstract geometric pattern"
+                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAEevd9-D0jprhnFFFYvXLwFzTkvSLLaBFmlVFkfpshEyFBT1cl_eOGK6SPqABl7M-t6P8UrPV2yK8Kvjg2qu3e8iwMpPASU9ZUUrjrzL2wZ3bApO3RRsNt_wjjF1Ux9wj9swpAXMtxKYB78XmeK1TPMm_IqvbhMgYlBotBrqXQY7kF-EFNhtcenKfNPNo69GYZuA-wHLrXruGCDa8J9U7hVtBddU2OKN7FeTWz1vdoc0Pr1fTNta2LLqy0Xiw1rLkCbCO01DfDsmu3");'>
+                </div>
+            </div>
+        </div>
+    </header>
+    <main class="flex-1 layout-container flex flex-col w-full max-w-[1440px] mx-auto px-4 md:px-10 py-8 gap-8">
+        <!-- PageHeading -->
+        <div
+            class="flex flex-wrap justify-between gap-4 items-end border-b border-slate-200 dark:border-[#232f48] pb-6">
+            <div class="flex flex-col gap-3 max-w-2xl">
+                <h1 class="text-slate-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">
+                    Benchmarking Results</h1>
+                <p class="text-slate-500 dark:text-[#92a4c9] text-base font-normal leading-normal">
+                    Comparative analysis of YOLOv8m, ViT, VGG16, ResNet50, EfficientNetB0, and YOLOv8m-cls on standard
+                    datasets using Django/Streamlit framework.
+                </p>
+            </div>
+            <div class="flex gap-3">
+                <button
+                    class="flex items-center gap-2 bg-surface-dark hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <span class="material-symbols-outlined text-[18px]">download</span>
+                    Export CSV
+                </button>
+                <button
+                    class="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-primary/20">
+                    <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                    Run New Benchmark
+                </button>
+            </div>
+        </div>
+        <!-- Stats Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div
+                class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-surface-dark shadow-sm border border-slate-200 dark:border-transparent">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-[#92a4c9] mb-1">
+                    <span class="material-symbols-outlined text-xl">verified</span>
+                    <p class="text-sm font-medium uppercase tracking-wider">Best Accuracy</p>
+                </div>
+                <p class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold">ViT</p>
+                <div class="flex items-center gap-1 text-green-500 text-sm font-medium mt-1">
+                    <span class="material-symbols-outlined text-sm">trending_up</span>
+                    <span>94.2% Top-1</span>
+                </div>
+            </div>
+            <div
+                class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-surface-dark shadow-sm border border-slate-200 dark:border-transparent">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-[#92a4c9] mb-1">
+                    <span class="material-symbols-outlined text-xl">bolt</span>
+                    <p class="text-sm font-medium uppercase tracking-wider">Fastest Inference</p>
+                </div>
+                <p class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold">YOLOv8m-cls</p>
+                <div class="flex items-center gap-1 text-green-500 text-sm font-medium mt-1">
+                    <span class="material-symbols-outlined text-sm">speed</span>
+                    <span>4ms / frame</span>
+                </div>
+            </div>
+            <div
+                class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-surface-dark shadow-sm border border-slate-200 dark:border-transparent">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-[#92a4c9] mb-1">
+                    <span class="material-symbols-outlined text-xl">memory</span>
+                    <p class="text-sm font-medium uppercase tracking-wider">Avg GPU Usage</p>
+                </div>
+                <p class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold">3.2 GB</p>
+                <div class="flex items-center gap-1 text-slate-500 text-sm font-medium mt-1">
+                    <span>On NVIDIA RTX 3090</span>
+                </div>
+            </div>
+            <div
+                class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-surface-dark shadow-sm border border-slate-200 dark:border-transparent">
+                <div class="flex items-center gap-2 text-slate-500 dark:text-[#92a4c9] mb-1">
+                    <span class="material-symbols-outlined text-xl">analytics</span>
+                    <p class="text-sm font-medium uppercase tracking-wider">Models Compared</p>
+                </div>
+                <p class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold">6</p>
+                <div class="flex items-center gap-1 text-primary text-sm font-medium mt-1">
+                    <span>Active Benchmarks</span>
+                </div>
+            </div>
+        </div>
+        <!-- Main Content Area -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Sidebar / Filters -->
+            <div class="lg:col-span-3 flex flex-col gap-6">
+                <!-- Hardware Context Card -->
+                <div
+                    class="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-[#1a2333] dark:to-[#111722] rounded-xl p-5 border border-slate-200 dark:border-[#232f48] relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <span class="material-symbols-outlined text-6xl text-white">developer_board</span>
+                    </div>
+                    <h3 class="text-white text-lg font-bold mb-1">Environment</h3>
+                    <div class="space-y-2 text-sm text-slate-300">
+                        <div class="flex justify-between border-b border-white/10 pb-1">
+                            <span>GPU</span>
+                            <span class="font-mono text-white">RTX 3090</span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/10 pb-1">
+                            <span>CUDA</span>
+                            <span class="font-mono text-white">v11.7</span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/10 pb-1">
+                            <span>Framework</span>
+                            <span class="font-mono text-white">PyTorch 2.0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Batch Size</span>
+                            <span class="font-mono text-white">32</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Filters -->
+                <div
+                    class="bg-white dark:bg-surface-dark rounded-xl p-5 border border-slate-200 dark:border-transparent shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-slate-900 dark:text-white font-bold text-lg">Configuration</h3>
+                        <button class="text-primary text-xs font-medium hover:underline">Reset</button>
+                    </div>
+                    <!-- Metric Toggle -->
+                    <div class="mb-6">
+                        <label
+                            class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 block">Primary
+                            Metric</label>
+                        <div class="flex flex-col gap-2">
+                            <label
+                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
+                                <input checked=""
+                                    class="text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                    name="metric" type="radio" />
+                                <span class="text-sm font-medium dark:text-slate-200">Inference Time</span>
+                            </label>
+                            <label
+                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
+                                <input
+                                    class="text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                    name="metric" type="radio" />
+                                <span class="text-sm font-medium dark:text-slate-200">Accuracy (Top-1)</span>
+                            </label>
+                            <label
+                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
+                                <input
+                                    class="text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                    name="metric" type="radio" />
+                                <span class="text-sm font-medium dark:text-slate-200">GPU Memory</span>
+                            </label>
+                        </div>
+                    </div>
+                    <!-- Model Selection -->
+                    <div>
+                        <label
+                            class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 block">Selected
+                            Models</label>
+                        <div class="flex flex-col gap-2">
+                            <label
+                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors group">
+                                <input checked=""
+                                    class="rounded text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                    type="checkbox" />
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-sm font-medium dark:text-slate-200">YOLOv8m detect</span>
+                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                </div>
+                            </label>
+                            <label
+                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
+                                <input checked=""
+                                    class="rounded text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                    type="checkbox" />
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-sm font-medium dark:text-slate-200">ViT</span>
+                                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                </div>
+                            </label>
+                            <label
+                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
+                                <input checked=""
+                                    class="rounded text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                    type="checkbox" />
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-sm font-medium dark:text-slate-200">VGG16</span>
+                                    <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                                </div>
+                            </label>
+                            <label
+                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
+                                <input checked=""
+                                    class="rounded text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                    type="checkbox" />
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-sm font-medium dark:text-slate-200">ResNet50</span>
+                                    <span class="w-2 h-2 rounded-full bg-pink-500"></span>
+                                </div>
+                            </label>
+                            <label
+                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
+                                <input checked=""
+                                    class="rounded text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                    type="checkbox" />
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-sm font-medium dark:text-slate-200">EfficientNetB0</span>
+                                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                                </div>
+                            </label>
+                            <label
+                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
+                                <input checked=""
+                                    class="rounded text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
+                                    type="checkbox" />
+                                <div class="flex items-center justify-between w-full">
+                                    <span class="text-sm font-medium dark:text-slate-200">YOLOv8m-cls</span>
+                                    <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Charts & Data -->
+            <div class="lg:col-span-9 flex flex-col gap-6">
+                <!-- Chart Area -->
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                    <!-- Inference Time Bar Chart -->
+                    <div
+                        class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-transparent shadow-sm flex flex-col h-full">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-slate-900 dark:text-white font-bold text-lg">Inference Time (ms)</h3>
+                            <button class="text-slate-400 hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined">more_horiz</span>
+                            </button>
+                        </div>
+                        <div class="flex-1 flex flex-col justify-end gap-3 pl-2 relative min-h-[250px]">
+                            <!-- Grid lines -->
+                            <div
+                                class="absolute inset-0 flex flex-col justify-between pointer-events-none text-xs text-slate-400 font-mono opacity-20 z-0">
+                                <div class="border-b border-slate-400 w-full h-0"></div>
+                                <div class="border-b border-slate-400 w-full h-0"></div>
+                                <div class="border-b border-slate-400 w-full h-0"></div>
+                                <div class="border-b border-slate-400 w-full h-0"></div>
+                                <div class="border-b border-slate-400 w-full h-0"></div>
+                            </div>
+                            <!-- Bars -->
+                            <div class="relative z-10 flex flex-col gap-3 w-full">
+                                <!-- Bar Item -->
+                                <div class="flex items-center gap-3 group">
+                                    <div
+                                        class="w-24 text-right text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+                                        VGG16</div>
+                                    <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-purple-500 rounded-full w-[95%]" title="95ms"></div>
+                                    </div>
+                                    <div class="w-10 text-xs font-mono text-slate-400">95ms</div>
+                                </div>
+                                <!-- Bar Item -->
+                                <div class="flex items-center gap-3 group">
+                                    <div
+                                        class="w-24 text-right text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+                                        ViT</div>
+                                    <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-indigo-500 rounded-full w-[70%]" title="70ms"></div>
+                                    </div>
+                                    <div class="w-10 text-xs font-mono text-slate-400">70ms</div>
+                                </div>
+                                <!-- Bar Item -->
+                                <div class="flex items-center gap-3 group">
+                                    <div
+                                        class="w-24 text-right text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+                                        ResNet50</div>
+                                    <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-pink-500 rounded-full w-[45%]" title="45ms"></div>
+                                    </div>
+                                    <div class="w-10 text-xs font-mono text-slate-400">45ms</div>
+                                </div>
+                                <!-- Bar Item -->
+                                <div class="flex items-center gap-3 group">
+                                    <div
+                                        class="w-24 text-right text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+                                        YOLOv8m det</div>
+                                    <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-blue-500 rounded-full w-[15%]" title="15ms"></div>
+                                    </div>
+                                    <div class="w-10 text-xs font-mono text-slate-400">15ms</div>
+                                </div>
+                                <!-- Bar Item -->
+                                <div class="flex items-center gap-3 group">
+                                    <div
+                                        class="w-24 text-right text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+                                        EfficientNetB0</div>
+                                    <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-orange-500 rounded-full w-[12%]" title="12ms"></div>
+                                    </div>
+                                    <div class="w-10 text-xs font-mono text-slate-400">12ms</div>
+                                </div>
+                                <!-- Bar Item -->
+                                <div class="flex items-center gap-3 group">
+                                    <div
+                                        class="w-24 text-right text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
+                                        YOLOv8m-cls</div>
+                                    <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-teal-500 rounded-full w-[4%]" title="4ms"></div>
+                                    </div>
+                                    <div class="w-10 text-xs font-mono text-slate-400">4ms</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Accuracy vs Latency Scatter (Simulated) -->
+                    <div
+                        class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-transparent shadow-sm flex flex-col h-full">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-slate-900 dark:text-white font-bold text-lg">Top-1 Accuracy vs Latency</h3>
+                            <button class="text-slate-400 hover:text-primary transition-colors">
+                                <span class="material-symbols-outlined">info</span>
+                            </button>
+                        </div>
+                        <div
+                            class="flex-1 relative border-l border-b border-slate-300 dark:border-slate-600 min-h-[250px] mx-2 mb-2">
+                            <!-- Labels -->
+                            <div
+                                class="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 text-xs font-bold text-slate-500 tracking-wider">
+                                ACCURACY</div>
+                            <div
+                                class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs font-bold text-slate-500 tracking-wider">
+                                LATENCY (ms)</div>
+                            <!-- Points -->
+                            <!-- ViT -->
+                            <div
+                                class="absolute top-[5%] right-[30%] w-4 h-4 bg-indigo-500 rounded-full shadow-lg border-2 border-white dark:border-surface-dark group cursor-pointer hover:scale-125 transition-transform z-10">
+                                <div
+                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap z-20">
+                                    ViT (94.2%)</div>
+                            </div>
+                            <!-- VGG16 -->
+                            <div
+                                class="absolute top-[20%] right-[5%] w-4 h-4 bg-purple-500 rounded-full shadow-lg border-2 border-white dark:border-surface-dark group cursor-pointer hover:scale-125 transition-transform z-10">
+                                <div
+                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap z-20">
+                                    VGG16 (89%)</div>
+                            </div>
+                            <!-- ResNet50 -->
+                            <div
+                                class="absolute top-[15%] left-[50%] w-4 h-4 bg-pink-500 rounded-full shadow-lg border-2 border-white dark:border-surface-dark group cursor-pointer hover:scale-125 transition-transform z-10">
+                                <div
+                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap z-20">
+                                    ResNet50 (91%)</div>
+                            </div>
+                            <!-- YOLOv8m Det -->
+                            <div
+                                class="absolute top-[30%] left-[15%] w-4 h-4 bg-blue-500 rounded-full shadow-lg border-2 border-white dark:border-surface-dark group cursor-pointer hover:scale-125 transition-transform z-10">
+                                <div
+                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap z-20">
+                                    YOLOv8m (85%)</div>
+                            </div>
+                            <!-- YOLOv8m Cls -->
+                            <div
+                                class="absolute top-[25%] left-[5%] w-4 h-4 bg-teal-500 rounded-full shadow-lg border-2 border-white dark:border-surface-dark group cursor-pointer hover:scale-125 transition-transform z-10">
+                                <div
+                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap z-20">
+                                    YOLOv8m-cls (87%)</div>
+                            </div>
+                            <!-- EfficientNet -->
+                            <div
+                                class="absolute top-[18%] left-[12%] w-4 h-4 bg-orange-500 rounded-full shadow-lg border-2 border-white dark:border-surface-dark group cursor-pointer hover:scale-125 transition-transform z-10">
+                                <div
+                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap z-20">
+                                    EfficientNet (90%)</div>
+                            </div>
+                            <!-- Grid Background -->
+                            <div class="absolute inset-0 grid grid-cols-4 grid-rows-4 pointer-events-none">
+                                <div
+                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
+                                </div>
+                                <div
+                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
+                                </div>
+                                <div
+                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
+                                </div>
+                                <div class="border-b border-slate-300/10 dark:border-slate-600/20"></div>
+                                <div
+                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
+                                </div>
+                                <div
+                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
+                                </div>
+                                <div
+                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
+                                </div>
+                                <div class="border-b border-slate-300/10 dark:border-slate-600/20"></div>
+                                <div
+                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
+                                </div>
+                                <div
+                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
+                                </div>
+                                <div
+                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
+                                </div>
+                                <div class="border-b border-slate-300/10 dark:border-slate-600/20"></div>
+                                <div class="border-r border-slate-300/10 dark:border-slate-600/20"></div>
+                                <div class="border-r border-slate-300/10 dark:border-slate-600/20"></div>
+                                <div class="border-r border-slate-300/10 dark:border-slate-600/20"></div>
+                                <div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Detailed Table -->
+                <div
+                    class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-transparent shadow-sm overflow-hidden flex flex-col">
+                    <div class="p-6 border-b border-slate-200 dark:border-[#111722] flex justify-between items-center">
+                        <h3 class="text-slate-900 dark:text-white font-bold text-lg">Raw Metrics</h3>
+                        <div class="flex gap-2">
+                            <input
+                                class="bg-slate-100 dark:bg-[#111722] border-none rounded-lg px-4 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-primary w-48"
+                                placeholder="Search model..." type="text" />
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead
+                                class="bg-slate-50 dark:bg-[#1a2438] text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold">
+                                <tr>
+                                    <th class="px-6 py-4">Model Name</th>
+                                    <th class="px-6 py-4">Task Type</th>
+                                    <th class="px-6 py-4 text-right cursor-pointer hover:text-primary">
+                                        Inference (ms) <span
+                                            class="material-symbols-outlined align-middle text-sm">arrow_drop_up</span>
+                                    </th>
+                                    <th class="px-6 py-4 text-right">FPS</th>
+                                    <th class="px-6 py-4 text-right">Accuracy (%)</th>
+                                    <th class="px-6 py-4 text-right">GPU Mem (GB)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 dark:divide-[#111722]">
+                                <!-- Row 1 -->
+                                <tr class="hover:bg-slate-50 dark:hover:bg-[#2a3752] transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                            <span class="font-medium text-slate-900 dark:text-white">YOLOv8m
+                                                detect</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">Detection</td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">15.2
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">65
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">85.4%
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">2.1
+                                    </td>
+                                </tr>
+                                <!-- Row 2 -->
+                                <tr
+                                    class="hover:bg-slate-50 dark:hover:bg-[#2a3752] transition-colors bg-slate-50/50 dark:bg-[#232f48]/50">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                            <span class="font-medium text-slate-900 dark:text-white">ViT (Base)</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">Classification</td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">70.1
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">14
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-green-500 font-bold">94.2%</td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">4.5
+                                    </td>
+                                </tr>
+                                <!-- Row 3 -->
+                                <tr class="hover:bg-slate-50 dark:hover:bg-[#2a3752] transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-2 h-2 rounded-full bg-purple-500"></div>
+                                            <span class="font-medium text-slate-900 dark:text-white">VGG16</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">Classification</td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">95.3
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">10
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">89.1%
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">8.2
+                                    </td>
+                                </tr>
+                                <!-- Row 4 -->
+                                <tr
+                                    class="hover:bg-slate-50 dark:hover:bg-[#2a3752] transition-colors bg-slate-50/50 dark:bg-[#232f48]/50">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-2 h-2 rounded-full bg-pink-500"></div>
+                                            <span class="font-medium text-slate-900 dark:text-white">ResNet50</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">Classification</td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">45.8
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">22
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">91.5%
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">3.8
+                                    </td>
+                                </tr>
+                                <!-- Row 5 -->
+                                <tr class="hover:bg-slate-50 dark:hover:bg-[#2a3752] transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                                            <span
+                                                class="font-medium text-slate-900 dark:text-white">EfficientNetB0</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">Classification</td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">12.4
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">80
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">90.2%
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">1.8
+                                    </td>
+                                </tr>
+                                <!-- Row 6 -->
+                                <tr
+                                    class="hover:bg-slate-50 dark:hover:bg-[#2a3752] transition-colors bg-slate-50/50 dark:bg-[#232f48]/50">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-2 h-2 rounded-full bg-teal-500"></div>
+                                            <span class="font-medium text-slate-900 dark:text-white">YOLOv8m-cls</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">Classification</td>
+                                    <td class="px-6 py-4 text-right font-mono text-green-500 font-bold">4.0</td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">250
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">87.3%
+                                    </td>
+                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">1.5
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

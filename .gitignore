@@ -1,4 +1,4 @@
-
 *.pt
 *.pth
 *.onnx
+*vit.onnx.data

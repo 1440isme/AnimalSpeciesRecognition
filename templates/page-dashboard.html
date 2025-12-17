@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>AI Hub Dashboard</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Theme Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#135bec",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "card-dark": "#1a1d23",
+                        "border-dark": "#232f48",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for sidebar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #111722;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #232f48;
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #34425e;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden">
+    <div class="flex h-screen w-full overflow-hidden">
+        <!-- SIDEBAR -->
+        <aside
+            class="w-80 flex-shrink-0 bg-[#111722] border-r border-border-dark flex flex-col h-full z-20 overflow-hidden">
+            <!-- Header -->
+            <div class="p-6 pb-2">
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-white">
+                        <span class="material-symbols-outlined text-2xl">hub</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <h1 class="text-white text-xl font-bold leading-none tracking-tight">AI Hub</h1>
+                        <p class="text-[#92a4c9] text-xs font-normal mt-1">v2.4.0 • GPU Active</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Scrollable Nav & Stats -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 flex flex-col gap-6">
+                <!-- Navigation -->
+                <nav class="flex flex-col gap-1">
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#232f48] text-white hover:bg-primary/20 transition-colors group"
+                        href="/dashboard">
+                        <span
+                            class="material-symbols-outlined text-[#92a4c9] group-hover:text-primary transition-colors">dashboard</span>
+                        <span class="text-sm font-medium">Dashboard</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#92a4c9] hover:bg-[#232f48] hover:text-white transition-colors"
+                        href="/benchmark">
+                        <span class="material-symbols-outlined">history</span>
+                        <span class="text-sm font-medium">Benchmark History</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#92a4c9] hover:bg-[#232f48] hover:text-white transition-colors"
+                        href="/inference">
+                        <span class="material-symbols-outlined">play_arrow</span>
+                        <span class="text-sm font-medium">Inference</span>
+                    </a>
+                </nav>
+                <div class="h-px bg-[#232f48] w-full my-1"></div>
+                <!-- Hardware Stats (Adapted from Charts component) -->
+                <div class="flex flex-col gap-6">
+                    <h3 class="text-[#92a4c9] text-xs font-bold uppercase tracking-wider px-2">System Status</h3>
+                    <!-- CPU Chart -->
+                    <div class="flex flex-col gap-2 px-2">
+                        <div class="flex justify-between items-end">
+                            <p class="text-white text-sm font-medium">CPU Load</p>
+                            <p id="cpu-percent" class="text-white text-xl font-bold">32%</p>
+                        </div>
+                        <div class="w-full h-1 bg-[#232f48] rounded-full">
+                            <div id="cpu-bar" class="h-full bg-primary rounded-full transition-all duration-300"
+                                style="width: 32%"></div>
+                        </div>
+                    </div>
+                    <!-- GPU Chart -->
+                    <div class="flex flex-col gap-2 px-2">
+                        <div class="flex justify-between items-end">
+                            <p id="gpu-name" class="text-white text-sm font-medium">GPU Load (RTX 3080)</p>
+                            <p id="gpu-percent" class="text-white text-xl font-bold">87%</p>
+                        </div>
+                        <div class="w-full h-1 bg-[#232f48] rounded-full">
+                            <div id="gpu-bar" class="h-full bg-[#0bda5e] rounded-full transition-all duration-300"
+                                style="width: 87%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="p-4 border-t border-[#232f48]">
+                <div class="flex flex-col gap-1">
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#92a4c9] hover:bg-[#232f48] hover:text-white transition-colors"
+                        href="#">
+                        <span class="material-symbols-outlined">menu_book</span>
+                        <span class="text-sm font-medium">Documentation</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#92a4c9] hover:bg-[#232f48] hover:text-white transition-colors"
+                        href="#">
+                        <span class="material-symbols-outlined">help</span>
+                        <span class="text-sm font-medium">Support</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 flex flex-col h-full relative overflow-y-auto bg-background-dark">
+            <div class="layout-container flex flex-col w-full max-w-[1400px] mx-auto p-6 md:p-10 gap-8">
+                <!-- Page Heading -->
+                <header class="flex flex-wrap justify-between items-end gap-4 border-b border-[#232f48] pb-6">
+                    <div class="flex flex-col gap-2">
+                        <h2 class="text-white text-4xl font-black leading-tight tracking-[-0.033em]">ML/DL Model Hub
+                        </h2>
+                        <p class="text-[#92a4c9] text-base font-normal max-w-2xl">
+                            Select a trained model in animal-10 dataset to begin inference tasks or start a
+                            comprehensive benchmarking
+                            suite.
+                        </p>
+                    </div>
+
+                </header>
+                <!-- Controls & Filtering -->
+                <div
+                    class="flex flex-col md:flex-row gap-4 justify-between items-center bg-card-dark/50 p-2 rounded-xl">
+                    <!-- Search -->
+                    <div class="w-full md:w-96">
+                        <label
+                            class="flex items-center w-full h-10 rounded-lg bg-[#232f48] overflow-hidden focus-within:ring-2 ring-primary/50 transition-all">
+                            <div class="flex items-center justify-center pl-3 text-[#92a4c9]">
+                                <span class="material-symbols-outlined text-[20px]">search</span>
+                            </div>
+                            <input id="search-input"
+                                class="w-full bg-transparent border-none text-white placeholder:text-[#92a4c9] text-sm px-3 focus:outline-none focus:ring-0"
+                                placeholder="Search models (e.g., YOLO, ResNet)..." />
+                        </label>
+                    </div>
+                    <!-- Chips -->
+                    <div class="flex gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 no-scrollbar">
+                        <button data-filter="all"
+                            class="filter-btn flex h-9 items-center px-4 rounded-lg bg-primary text-white text-sm font-medium whitespace-nowrap shadow-lg shadow-primary/20">
+                            All Models
+                        </button>
+                        <button data-filter="detection"
+                            class="filter-btn flex h-9 items-center px-4 rounded-lg bg-[#232f48] hover:bg-[#2f3e5c] text-white text-sm font-medium whitespace-nowrap transition-colors">
+                            Object Detection
+                        </button>
+                        <button data-filter="classification"
+                            class="filter-btn flex h-9 items-center px-4 rounded-lg bg-[#232f48] hover:bg-[#2f3e5c] text-white text-sm font-medium whitespace-nowrap transition-colors">
+                            Classification
+                        </button>
+                    </div>
+                </div>
+                <!-- Models Grid -->
+                <div id="models-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for model in models %}
+                    <!-- Model Card: {{ model.name }} -->
+                    <div class="model-card group relative flex flex-col bg-card-dark rounded-xl border border-[#232f48] hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden"
+                        data-model-name="{{ model.name|lower }}" data-model-type="{{ model.type }}">
+                        <div
+                            class="h-40 w-full relative bg-gradient-to-br from-[#1e2532] to-[#111722] p-6 flex items-center justify-center overflow-hidden">
+                            <!-- Background Pattern -->
+                            <div class="absolute inset-0 opacity-20"
+                                style="background-image: radial-gradient(#3b4964 1px, transparent 1px); background-size: 10px 10px;">
+                            </div>
+                            <img class="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
+                                data-alt="Model visualization"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqY6PqgQliG4tXAG_9VLlZgE0gLp0YKEbUCHyjVtLtDobbuZLcaEVzgyXjvQTNPbNJhSvb91C9aGEPkjda_6veHTpKScNULxdNRH1CpRVJHaGNQj73dc-KwlAVik7ftpcpZW-OSrpiap0xXEmHEvxeTEJZskSuc4sEs4cDELAJ_Ftr7gEiMDg-VF3kWkq3aBIyevx88sa-ebyv9cbzNRjJnA4kqyb7v21tWAYfdfYBWfe7aQ13f1lIWmN9OhkKe5FJ6K98yed-vs3e" />
+                            <div class="z-10 bg-[#232f48]/80 p-3 rounded-xl backdrop-blur-sm border border-white/10">
+                                {% if model.type == 'detection' %}
+                                <span class="material-symbols-outlined text-4xl text-primary">view_in_ar</span>
+                                {% else %}
+                                <span class="material-symbols-outlined text-4xl text-purple-400">category</span>
+                                {% endif %}
+                            </div>
+                            <div
+                                class="absolute top-4 right-4 flex items-center gap-1.5 {% if model.is_ready %}bg-emerald-500/10 border-emerald-500/20 text-emerald-400{% else %}bg-yellow-500/10 border-yellow-500/20 text-yellow-400{% endif %} border px-2 py-1 rounded text-xs font-semibold">
+                                <span
+                                    class="w-1.5 h-1.5 rounded-full {% if model.is_ready %}bg-emerald-500 animate-pulse{% else %}bg-yellow-500{% endif %}"></span>
+                                {% if model.is_ready %}Ready{% else %}Loading{% endif %}
+                            </div>
+                        </div>
+                        <div class="flex flex-col p-5 gap-4 flex-1">
+                            <div>
+                                <div class="flex justify-between items-start mb-1">
+                                    <h3 class="text-white text-lg font-bold font-display">{{ model.name }}</h3>
+                                    <span
+                                        class="text-[10px] font-bold uppercase tracking-wider {% if model.type == 'detection' %}text-blue-300 bg-blue-900/30 border-blue-800/50{% else %}text-purple-300 bg-purple-900/30 border-purple-800/50{% endif %} px-2 py-0.5 rounded border">
+                                        {% if model.type == 'detection' %}Detection{% else %}Classify{% endif %}
+                                    </span>
+                                </div>
+                                <p class="text-[#92a4c9] text-sm leading-relaxed line-clamp-2">
+                                    {{ model.description }}
+                                </p>
+                            </div>
+                            <div class="mt-auto grid grid-cols-2 gap-3">
+                                {% if model.is_ready %}
+                                <a href="/inference/?model_id={{ model.id }}"
+                                    class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary hover:bg-blue-600 text-white text-sm font-semibold transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                                    Inference
+                                </a>
+                                {% else %}
+                                <button
+                                    class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-700 text-gray-400 cursor-not-allowed text-sm font-semibold transition-colors"
+                                    disabled>
+                                    <span class="material-symbols-outlined text-[18px]">hourglass_empty</span>
+                                    Init...
+                                </button>
+                                {% endif %}
+                                <button
+                                    class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-[#232f48] hover:bg-[#232f48] text-[#92a4c9] hover:text-white text-sm font-medium transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">speed</span>
+                                    Benchmark
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        // ========== SYSTEM METRICS ==========
+        // Fetch and update system metrics
+        async function updateSystemMetrics() {
+            try {
+                const response = await fetch('/api/system-metrics/');
+                const data = await response.json();
+
+                // Update CPU
+                document.getElementById('cpu-percent').textContent = data.cpu_percent + '%';
+                document.getElementById('cpu-bar').style.width = data.cpu_percent + '%';
+
+                // Update GPU
+                if (data.gpu.name !== 'N/A') {
+                    document.getElementById('gpu-name').textContent = 'GPU Load (' + data.gpu.name + ')';
+                    document.getElementById('gpu-percent').textContent = data.gpu.load + '%';
+                    document.getElementById('gpu-bar').style.width = data.gpu.load + '%';
+                }
+            } catch (error) {
+                console.error('Error fetching system metrics:', error);
+            }
+        }
+
+        // Update immediately and then every 2 seconds
+        updateSystemMetrics();
+        setInterval(updateSystemMetrics, 2000);
+
+        // ========== SEARCH & FILTER ==========
+        const searchInput = document.getElementById('search-input');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const modelCards = document.querySelectorAll('.model-card');
+
+        let currentFilter = 'all';
+        let currentSearch = '';
+
+        // Filter function
+        function filterModels() {
+            modelCards.forEach(card => {
+                const modelName = card.getAttribute('data-model-name') || '';
+                const modelType = card.getAttribute('data-model-type') || '';
+
+                // Check search match
+                const searchMatch = modelName.includes(currentSearch.toLowerCase());
+
+                // Check filter match
+                const filterMatch = currentFilter === 'all' || modelType === currentFilter;
+
+                // Show/hide card with animation
+                if (searchMatch && filterMatch) {
+                    card.style.display = 'flex';
+                    // Smooth fade in
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'scale(1)';
+                    }, 10);
+                } else {
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        card.style.display = 'none';
+                    }, 300);
+                }
+            });
+        }
+
+        // Search input handler
+        searchInput.addEventListener('input', (e) => {
+            currentSearch = e.target.value;
+            filterModels();
+        });
+
+        // Filter button handlers
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Update current filter
+                currentFilter = button.getAttribute('data-filter');
+
+                // Update button styles
+                filterButtons.forEach(btn => {
+                    if (btn === button) {
+                        btn.classList.remove('bg-[#232f48]', 'hover:bg-[#2f3e5c]');
+                        btn.classList.add('bg-primary', 'shadow-lg', 'shadow-primary/20');
+                    } else {
+                        btn.classList.remove('bg-primary', 'shadow-lg', 'shadow-primary/20');
+                        btn.classList.add('bg-[#232f48]', 'hover:bg-[#2f3e5c]');
+                    }
+                });
+
+                // Apply filter
+                filterModels();
+            });
+        });
+
+        // Initialize card transitions
+        modelCards.forEach(card => {
+            card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        });
+    </script>
+</body>
+
+</html>
