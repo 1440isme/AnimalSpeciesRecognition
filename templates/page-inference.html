@@ -5,144 +5,176 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Inference Lab - AI Hub</title>
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
-    <!-- Material Symbols -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#135bec",
-                        "background-dark": "#101622",
-                        "card-dark": "#1a1d23",
-                        "border-dark": "#232f48",
+                        "primary": "#6366f1",
+                        "primary-dark": "#4f46e5",
+                        "accent": "#22d3ee",
+                        "surface": "#0f172a",
+                        "surface-2": "#1e293b",
+                        "surface-3": "#334155",
+                        "success": "#10b981",
+                        "warning": "#f59e0b",
+                        "danger": "#ef4444",
                     },
                     fontFamily: {
-                        "display": ["Space Grotesk", "sans-serif"],
-                        "body": ["Noto Sans", "sans-serif"],
+                        "display": ["Outfit", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
                     },
                 },
             },
         }
     </script>
     <style>
-        .custom-scrollbar::-webkit-scrollbar {
+        ::-webkit-scrollbar {
             width: 6px;
+            height: 6px;
         }
 
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #111722;
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
         }
 
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #232f48;
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
             border-radius: 3px;
         }
 
-        /* Custom Range Slider Styling */
-        input[type="range"].slider-thumb::-webkit-slider-thumb {
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
             appearance: none;
+            background: transparent;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, #6366f1 var(--value), #334155 var(--value));
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
             width: 18px;
             height: 18px;
             border-radius: 50%;
-            background: #135bec;
+            background: #6366f1;
             cursor: pointer;
-            border: 3px solid #1a1d23;
-            box-shadow: 0 0 0 1px #135bec;
+            margin-top: -6px;
+            border: 3px solid #1e293b;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+        }
+
+        .model-chip {
             transition: all 0.2s ease;
         }
 
-        input[type="range"].slider-thumb::-webkit-slider-thumb:hover {
-            background: #1e6fff;
-            box-shadow: 0 0 0 3px rgba(19, 91, 236, 0.3);
-            transform: scale(1.1);
+        .model-chip.selected {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: #6366f1;
         }
 
-        input[type="range"].slider-thumb::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #135bec;
-            cursor: pointer;
-            border: 3px solid #1a1d23;
-            box-shadow: 0 0 0 1px #135bec;
-            transition: all 0.2s ease;
+        .result-card {
+            animation: slideIn 0.3s ease-out forwards;
         }
 
-        input[type="range"].slider-thumb::-moz-range-thumb:hover {
-            background: #1e6fff;
-            box-shadow: 0 0 0 3px rgba(19, 91, 236, 0.3);
-            transform: scale(1.1);
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .winner-glow {
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.4);
+            border-color: #10b981 !important;
         }
     </style>
 </head>
 
-<body class="bg-background-dark text-white font-display overflow-hidden">
+<body class="bg-surface text-white font-display overflow-hidden">
     <div class="flex h-screen w-full overflow-hidden">
-        <!-- SIDEBAR (Same as Dashboard) -->
-        <aside
-            class="w-80 flex-shrink-0 bg-[#111722] border-r border-border-dark flex flex-col h-full z-20 overflow-hidden">
-            <div class="p-6 pb-2">
+        <!-- SIDEBAR -->
+        <aside class="w-72 flex-shrink-0 bg-surface border-r border-surface-3 flex flex-col h-full z-20">
+            <div class="p-5 border-b border-surface-3">
                 <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-primary text-white">
-                        <span class="material-symbols-outlined text-2xl">hub</span>
+                    <div
+                        class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent">
+                        <span class="material-symbols-outlined text-xl text-white">hub</span>
                     </div>
                     <div class="flex flex-col">
-                        <h1 class="text-white text-xl font-bold leading-none tracking-tight">AI Hub</h1>
-                        <p class="text-[#92a4c9] text-xs font-normal mt-1">v2.4.0 • GPU Active</p>
+                        <h1 class="text-white text-lg font-bold tracking-tight">AI Hub</h1>
+                        <p class="text-slate-500 text-xs font-mono">v2.4.0</p>
                     </div>
                 </div>
             </div>
-            <div class="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 flex flex-col gap-6">
+
+            <div class="flex-1 overflow-y-auto p-4">
                 <nav class="flex flex-col gap-1">
-                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#92a4c9] hover:bg-[#232f48] hover:text-white transition-colors"
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-surface-2 hover:text-white transition-all"
                         href="/dashboard">
-                        <span class="material-symbols-outlined">dashboard</span>
+                        <span class="material-symbols-outlined text-xl">dashboard</span>
                         <span class="text-sm font-medium">Dashboard</span>
                     </a>
-                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-[#232f48] text-white hover:bg-primary/20 transition-colors group"
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/30 transition-all"
                         href="/inference">
-                        <span
-                            class="material-symbols-outlined text-[#92a4c9] group-hover:text-primary transition-colors">play_arrow</span>
+                        <span class="material-symbols-outlined text-xl">play_arrow</span>
                         <span class="text-sm font-medium">Inference</span>
                     </a>
-                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#92a4c9] hover:bg-[#232f48] hover:text-white transition-colors"
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-surface-2 hover:text-white transition-all"
                         href="/benchmark">
-                        <span class="material-symbols-outlined">history</span>
-                        <span class="text-sm font-medium">Benchmark History</span>
+                        <span class="material-symbols-outlined text-xl">speed</span>
+                        <span class="text-sm font-medium">Benchmark Studio</span>
                     </a>
                 </nav>
-                <div class="h-px bg-[#232f48] w-full my-1"></div>
-                <div class="flex flex-col gap-6">
-                    <h3 class="text-[#92a4c9] text-xs font-bold uppercase tracking-wider px-2">System Status</h3>
-                    <div class="flex flex-col gap-2 px-2">
-                        <div class="flex justify-between items-end">
-                            <p class="text-white text-sm font-medium">CPU Load</p>
-                            <p id="cpu-percent-inf" class="text-white text-xl font-bold">32%</p>
+
+                <div class="mt-6 pt-6 border-t border-surface-3">
+                    <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider px-3 mb-3">System</h3>
+                    <div class="px-3 py-2">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs text-slate-400">CPU</span>
+                            <span id="cpu-percent" class="text-xs font-mono text-white">--%</span>
                         </div>
-                        <div class="w-full h-1 bg-[#232f48] rounded-full">
-                            <div id="cpu-bar-inf" class="h-full bg-primary rounded-full transition-all duration-300"
-                                style="width: 32%"></div>
+                        <div class="w-full h-1.5 bg-surface-3 rounded-full overflow-hidden">
+                            <div id="cpu-bar" class="h-full bg-accent rounded-full transition-all duration-300"
+                                style="width: 0%"></div>
                         </div>
                     </div>
-                    <div class="flex flex-col gap-2 px-2">
-                        <div class="flex justify-between items-end">
-                            <p id="gpu-name-inf" class="text-white text-sm font-medium">GPU Load (RTX 3080)</p>
-                            <p id="gpu-percent-inf" class="text-white text-xl font-bold">87%</p>
+                    <div class="px-3 py-2">
+                        <div class="flex justify-between items-center mb-1">
+                            <span id="gpu-name" class="text-xs text-slate-400">GPU</span>
+                            <span id="gpu-percent" class="text-xs font-mono text-white">--%</span>
                         </div>
-                        <div class="w-full h-1 bg-[#232f48] rounded-full">
-                            <div id="gpu-bar-inf" class="h-full bg-[#0bda5e] rounded-full transition-all duration-300"
-                                style="width: 87%"></div>
+                        <div class="w-full h-1.5 bg-surface-3 rounded-full overflow-hidden">
+                            <div id="gpu-bar" class="h-full bg-success rounded-full transition-all duration-300"
+                                style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
@@ -150,718 +182,1025 @@
         </aside>
 
         <!-- MAIN CONTENT -->
-        <main class="flex-1 flex flex-col h-full relative overflow-y-auto bg-background-dark">
-            <div class="layout-container flex flex-col w-full max-w-[1400px] mx-auto p-6 md:p-10 gap-8">
-                <header class="flex flex-wrap justify-between items-end gap-4 border-b border-[#232f48] pb-6">
-                    <div class="flex flex-col gap-2">
-                        <h2 class="text-white text-4xl font-black leading-tight tracking-[-0.033em]">Inference Lab</h2>
-                        {% if model_info %}
-                        <p class="text-[#92a4c9] text-base font-normal max-w-2xl">
-                            Running inference with <span class="text-primary font-bold">{{ model_info.name }}</span>
-                            model.
-                        </p>
-                        {% else %}
-                        <p class="text-[#92a4c9] text-base font-normal max-w-2xl">
-                            Please select a model from the dashboard to begin inference.
-                        </p>
-                        {% endif %}
+        <main
+            class="flex-1 flex flex-col h-full overflow-y-auto bg-gradient-to-br from-surface via-surface to-surface-2">
+            <div class="w-full max-w-[1600px] mx-auto p-6 md:p-10">
+                <!-- Header -->
+                <header class="mb-8 pb-6 border-b border-surface-3">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div>
+                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-2 flex items-center gap-3">
+                                <span class="material-symbols-outlined text-primary text-4xl">play_circle</span>
+                                Inference Lab
+                            </h2>
+                            <p class="text-slate-400">Chạy inference và so sánh kết quả giữa nhiều model</p>
+                        </div>
+
+                        <!-- Mode Switcher -->
+                        <div class="flex bg-surface-2 rounded-xl p-1 border border-surface-3">
+                            <button id="mode-single" onclick="switchMode('single')"
+                                class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-white text-sm font-medium transition-all">
+                                <span class="material-symbols-outlined text-lg">psychology</span>
+                                Single Model
+                            </button>
+                            <button id="mode-compare" onclick="switchMode('compare')"
+                                class="flex items-center gap-2 px-4 py-2 rounded-lg text-slate-400 hover:text-white text-sm font-medium transition-all">
+                                <span class="material-symbols-outlined text-lg">compare</span>
+                                Compare Mode
+                            </button>
+                        </div>
                     </div>
                 </header>
 
-                {% if model_info %}
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Left: Upload Section -->
-                    <div class="flex flex-col gap-6">
-                        <!-- Model Info Card -->
-                        <div class="bg-card-dark rounded-xl border border-[#232f48] p-6">
-                            <h3 class="text-white text-lg font-bold mb-4">Selected Model</h3>
-                            <div class="flex items-center gap-4 p-4 bg-[#192233] rounded-lg border border-[#232f48]">
-                                <div class="flex items-center justify-center w-12 h-12 rounded-lg bg-primary/20">
-                                    {% if model_info.type == 'detection' %}
-                                    <span class="material-symbols-outlined text-2xl text-primary">view_in_ar</span>
-                                    {% else %}
-                                    <span class="material-symbols-outlined text-2xl text-purple-400">category</span>
-                                    {% endif %}
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-white text-base font-bold">{{ model_info.name }}</p>
-                                    <p class="text-[#92a4c9] text-sm">{{ model_info.type|title }}</p>
-                                </div>
-                                <span
-                                    class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                    Ready
-                                </span>
-                            </div>
-                        </div>
-
-                        <!-- Inference Settings Card -->
-                        <div class="bg-card-dark rounded-xl border border-[#232f48] p-6">
-                            <div class="flex items-center gap-2 mb-4">
-                                <span class="material-symbols-outlined text-primary">tune</span>
-                                <h3 class="text-white text-lg font-bold">Inference Settings</h3>
+                <!-- SINGLE MODE -->
+                <div id="single-mode-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Left Column -->
+                        <div class="flex flex-col gap-6">
+                            <!-- Model Selection -->
+                            <div class="bg-surface-2 rounded-2xl border border-surface-3 p-5">
+                                <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">psychology</span>
+                                    Chọn Model
+                                </h3>
+                                <select id="single-model-select" onchange="onSingleModelChange()"
+                                    class="w-full bg-surface-3 border-none rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-primary">
+                                    <option value="">-- Chọn model --</option>
+                                    {% for model in all_models %}<option value="{{ model.id }}"
+                                        data-type="{{ model.type }}">{{ model.name }} ({{ model.type }})</option>
+                                    {% endfor %}
+                                </select>
                             </div>
 
-                            <!-- Confidence Threshold -->
-                            <div class="mb-5">
-                                <div class="flex justify-between items-center mb-2">
-                                    <label class="text-[#92a4c9] text-sm font-medium">Confidence Threshold</label>
-                                    <span id="conf-value" class="text-white text-sm font-bold font-mono">0.50</span>
-                                </div>
-                                <input type="range" id="conf-threshold" min="0" max="100" value="50"
-                                    class="w-full h-2 bg-[#232f48] rounded-lg appearance-none cursor-pointer slider-thumb"
-                                    style="background: linear-gradient(to right, #135bec 0%, #135bec 50%, #232f48 50%, #232f48 100%);">
-                                <div class="flex justify-between text-xs text-[#92a4c9] mt-1">
-                                    <span>0%</span>
-                                    <span>100%</span>
-                                </div>
-                            </div>
-
-                            <!-- Top-K Results (Classification only) -->
-                            <div id="topk-setting"
-                                class="mb-5 {% if model_info.type == 'detection' %}hidden{% endif %}">
-                                <div class="flex justify-between items-center mb-2">
-                                    <label class="text-[#92a4c9] text-sm font-medium">Top-K Results</label>
-                                    <span id="topk-value" class="text-white text-sm font-bold font-mono">5</span>
-                                </div>
-                                <input type="range" id="topk-slider" min="1" max="10" value="5"
-                                    class="w-full h-2 bg-[#232f48] rounded-lg appearance-none cursor-pointer slider-thumb"
-                                    style="background: linear-gradient(to right, #135bec 0%, #135bec 50%, #232f48 50%, #232f48 100%);">
-                                <div class="flex justify-between text-xs text-[#92a4c9] mt-1">
-                                    <span>1</span>
-                                    <span>10</span>
-                                </div>
-                            </div>
-
-                            <!-- IoU Threshold (Detection only) -->
-                            <div id="iou-setting"
-                                class="mb-5 {% if model_info.type == 'classification' %}hidden{% endif %}">
-                                <div class="flex justify-between items-center mb-2">
-                                    <label class="text-[#92a4c9] text-sm font-medium">IoU Threshold (NMS)</label>
-                                    <span id="iou-value" class="text-white text-sm font-bold font-mono">0.45</span>
-                                </div>
-                                <input type="range" id="iou-threshold" min="0" max="100" value="45"
-                                    class="w-full h-2 bg-[#232f48] rounded-lg appearance-none cursor-pointer slider-thumb"
-                                    style="background: linear-gradient(to right, #135bec 0%, #135bec 45%, #232f48 45%, #232f48 100%);">
-                                <div class="flex justify-between text-xs text-[#92a4c9] mt-1">
-                                    <span>0.0</span>
-                                    <span>1.0</span>
-                                </div>
-                            </div>
-
-                            <!-- Max Detections (Detection only) -->
-                            <div id="maxdet-setting"
-                                class="{% if model_info.type == 'classification' %}hidden{% endif %}">
-                                <div class="flex justify-between items-center mb-2">
-                                    <label class="text-[#92a4c9] text-sm font-medium">Max Detections</label>
-                                    <span id="maxdet-value" class="text-white text-sm font-bold font-mono">100</span>
-                                </div>
-                                <input type="range" id="maxdet-slider" min="10" max="300" step="10" value="100"
-                                    class="w-full h-2 bg-[#232f48] rounded-lg appearance-none cursor-pointer slider-thumb"
-                                    style="background: linear-gradient(to right, #135bec 0%, #135bec 31%, #232f48 31%, #232f48 100%);">
-                                <div class="flex justify-between text-xs text-[#92a4c9] mt-1">
-                                    <span>10</span>
-                                    <span>300</span>
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <!-- Input Source Selection -->
-                        <div class="bg-card-dark rounded-xl border border-[#232f48] p-6">
-                            <h3 class="text-white text-lg font-bold mb-4">Input Source</h3>
-
-                            <!-- Tab Buttons -->
-                            <div class="flex gap-2 mb-4">
-                                <button id="tab-upload"
-                                    class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold transition-colors">
-                                    <span class="material-symbols-outlined text-[18px]">image</span>
-                                    Upload Image
-                                </button>
-                                <button id="tab-camera"
-                                    class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-[#232f48] hover:bg-[#2f3e5c] text-white text-sm font-semibold transition-colors">
-                                    <span class="material-symbols-outlined text-[18px]">videocam</span>
-                                    Camera
-                                </button>
-                            </div>
-
-                            <!-- Upload Panel -->
-                            <div id="upload-panel">
-                                <label
-                                    class="flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-[#232f48] hover:border-primary/50 bg-[#192233]/30 hover:bg-[#192233]/60 transition-all px-4 py-8 cursor-pointer">
-                                    <input type="file" id="imageInput" accept="image/*" class="hidden" />
-                                    <div class="size-12 rounded-full bg-[#232f48] flex items-center justify-center">
-                                        <span class="material-symbols-outlined text-[#92a4c9]">image</span>
+                            <!-- Settings -->
+                            <div class="bg-surface-2 rounded-2xl border border-surface-3 p-5">
+                                <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">tune</span>
+                                    Cài đặt
+                                </h3>
+                                <!-- Common: Confidence -->
+                                <div class="mb-4">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-slate-400 text-sm">Confidence Threshold</label>
+                                        <span id="conf-value"
+                                            class="text-white text-sm font-mono bg-surface-3 px-2 py-0.5 rounded">0.50</span>
                                     </div>
-                                    <div class="text-center">
-                                        <p class="text-white text-sm font-medium mb-1">Click to upload image</p>
-                                        <p class="text-[#92a4c9] text-xs">JPG, PNG, WEBP up to 10MB</p>
+                                    <input type="range" id="conf-threshold" min="0" max="100" value="50"
+                                        class="w-full h-2 rounded-lg cursor-pointer" style="--value: 50%">
+                                </div>
+                                <!-- Classification: Top-K -->
+                                <div id="topk-setting" class="mb-4">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-slate-400 text-sm">Top-K Results</label>
+                                        <span id="topk-value"
+                                            class="text-white text-sm font-mono bg-surface-3 px-2 py-0.5 rounded">5</span>
                                     </div>
-                                </label>
-                                <div id="imagePreview" class="mt-4 hidden">
-                                    <img id="previewImg" class="w-full rounded-lg border border-[#232f48]" />
+                                    <input type="range" id="topk-slider" min="1" max="10" value="5"
+                                        class="w-full h-2 rounded-lg cursor-pointer" style="--value: 50%">
+                                </div>
+                                <!-- Detection: IOU Threshold -->
+                                <div id="iou-setting" class="hidden mb-4">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-slate-400 text-sm">IOU Threshold (NMS)</label>
+                                        <span id="iou-value"
+                                            class="text-white text-sm font-mono bg-surface-3 px-2 py-0.5 rounded">0.45</span>
+                                    </div>
+                                    <input type="range" id="iou-threshold" min="0" max="100" value="45"
+                                        class="w-full h-2 rounded-lg cursor-pointer" style="--value: 45%">
+                                </div>
+                                <!-- Detection: Max Detections -->
+                                <div id="maxdet-setting" class="hidden">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <label class="text-slate-400 text-sm">Max Detections</label>
+                                        <span id="maxdet-value"
+                                            class="text-white text-sm font-mono bg-surface-3 px-2 py-0.5 rounded">100</span>
+                                    </div>
+                                    <input type="range" id="maxdet-slider" min="1" max="300" value="100"
+                                        class="w-full h-2 rounded-lg cursor-pointer" style="--value: 33%">
                                 </div>
                             </div>
 
-                            <!-- Camera Panel -->
-                            <div id="camera-panel" class="hidden">
-                                <div class="relative rounded-xl overflow-hidden border border-[#232f48] bg-black">
-                                    <video id="cameraVideo" autoplay playsinline class="w-full h-auto"></video>
-                                    <canvas id="cameraCanvas" class="hidden"></canvas>
-
-                                    <!-- Camera Overlay Info -->
-                                    <div class="absolute top-3 left-3 flex gap-2">
+                            <!-- Input Source -->
+                            <div class="bg-surface-2 rounded-2xl border border-surface-3 p-5">
+                                <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">image</span>
+                                    Nguồn Input
+                                </h3>
+                                <!-- Source Tabs -->
+                                <div class="flex gap-2 mb-4">
+                                    <button id="tab-upload" onclick="switchInputSource('upload')"
+                                        class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium bg-primary text-white transition-all">
+                                        <span class="material-symbols-outlined text-lg">upload_file</span>
+                                        Upload
+                                    </button>
+                                    <button id="tab-camera" onclick="switchInputSource('camera')"
+                                        class="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium bg-surface-3 text-slate-400 hover:bg-surface-3/80 transition-all">
+                                        <span class="material-symbols-outlined text-lg">videocam</span>
+                                        Camera
+                                    </button>
+                                </div>
+                                <!-- Upload Zone -->
+                                <div id="upload-zone">
+                                    <label
+                                        class="flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-surface-3 hover:border-primary/50 bg-surface/50 hover:bg-surface transition-all px-4 py-8 cursor-pointer">
+                                        <input type="file" id="imageInput" accept="image/*" class="hidden" />
                                         <div
-                                            class="px-2 py-1 rounded bg-black/70 backdrop-blur-sm border border-emerald-500/50">
-                                            <div class="flex items-center gap-1.5">
-                                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                                <span class="text-emerald-400 text-xs font-semibold">LIVE</span>
+                                            class="w-14 h-14 rounded-2xl bg-surface-3 flex items-center justify-center">
+                                            <span
+                                                class="material-symbols-outlined text-2xl text-slate-400">cloud_upload</span>
+                                        </div>
+                                        <div class="text-center">
+                                            <p class="text-white text-sm font-medium mb-1">Click để upload ảnh</p>
+                                            <p class="text-slate-500 text-xs">JPG, PNG, WEBP (max 10MB)</p>
+                                        </div>
+                                    </label>
+                                    <div id="imagePreview" class="mt-4 hidden">
+                                        <img id="previewImg" class="w-full rounded-xl border border-surface-3" />
+                                    </div>
+                                </div>
+                                <!-- Camera Zone -->
+                                <div id="camera-zone" class="hidden">
+                                    <div class="relative rounded-xl overflow-hidden border border-surface-3 bg-black">
+                                        <video id="cameraVideo" autoplay playsinline
+                                            class="w-full aspect-video object-cover"></video>
+                                        <canvas id="cameraCanvas"
+                                            class="absolute inset-0 w-full h-full pointer-events-none"
+                                            style="z-index: 10;"></canvas>
+                                        <!-- Live Stats Overlay -->
+                                        <div id="camera-stats"
+                                            class="hidden absolute top-2 left-2 right-2 flex justify-between">
+                                            <div class="glass px-3 py-1.5 rounded-lg text-xs">
+                                                <span class="text-slate-400">FPS:</span>
+                                                <span id="live-fps"
+                                                    class="text-success font-mono font-bold ml-1">0</span>
+                                            </div>
+                                            <div class="glass px-3 py-1.5 rounded-lg text-xs">
+                                                <span class="text-slate-400">Latency:</span>
+                                                <span id="live-latency"
+                                                    class="text-primary font-mono font-bold ml-1">0ms</span>
                                             </div>
                                         </div>
-                                        <div id="fps-counter"
-                                            class="px-2 py-1 rounded bg-black/70 backdrop-blur-sm border border-primary/50">
-                                            <span class="text-primary text-xs font-mono font-semibold">0 FPS</span>
+                                        <!-- Live Prediction Overlay -->
+                                        <div id="camera-prediction"
+                                            class="hidden absolute bottom-2 left-2 right-2 glass px-4 py-3 rounded-xl">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <p class="text-slate-400 text-xs">Prediction</p>
+                                                    <p id="live-class" class="text-white font-bold text-lg">-</p>
+                                                </div>
+                                                <div class="text-right">
+                                                    <p class="text-slate-400 text-xs">Confidence</p>
+                                                    <p id="live-conf" class="text-primary font-bold text-2xl font-mono">
+                                                        0%</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
+                                    <div class="flex gap-2 mt-4">
+                                        <button id="startCameraBtn" onclick="startCamera()"
+                                            class="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-success text-white font-medium hover:bg-success/80 transition-all">
+                                            <span class="material-symbols-outlined">videocam</span>
+                                            Bật Camera
+                                        </button>
+                                        <button id="stopCameraBtn" onclick="stopCamera()"
+                                            class="hidden flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-danger text-white font-medium hover:bg-danger/80 transition-all">
+                                            <span class="material-symbols-outlined">videocam_off</span>
+                                            Tắt Camera
+                                        </button>
+                                    </div>
+                                    <p class="text-slate-500 text-xs mt-3 text-center">
+                                        <span class="material-symbols-outlined text-sm align-middle">info</span>
+                                        Bật camera, chọn model rồi bấm "Chạy Inference" để realtime
+                                    </p>
                                 </div>
+                            </div>
 
-                                <!-- Camera Controls -->
-                                <div class="mt-4 flex gap-3">
-                                    <button id="startCamera"
-                                        class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors">
-                                        <span class="material-symbols-outlined text-[18px]">play_arrow</span>
-                                        Start Camera
+                            <!-- Run Button -->
+                            <button id="runSingleInference" disabled onclick="runSingleInference()"
+                                class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-dark disabled:bg-surface-3 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-primary/20 disabled:shadow-none">
+                                <span class="material-symbols-outlined text-2xl">play_arrow</span>
+                                <span>Chạy Inference</span>
+                            </button>
+                        </div>
+
+                        <!-- Right Column: Results -->
+                        <div class="bg-surface-2 rounded-2xl border border-surface-3 p-6 min-h-[500px]">
+                            <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">analytics</span>
+                                Kết quả
+                            </h3>
+                            <div id="singleResultsContainer"
+                                class="flex flex-col items-center justify-center min-h-[400px] text-slate-400">
+                                <span class="material-symbols-outlined text-7xl opacity-20 mb-4">smart_toy</span>
+                                <p class="text-center">Chọn model, upload ảnh và nhấn "Chạy Inference"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COMPARE MODE -->
+                <div id="compare-mode-content" class="hidden">
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                        <!-- Left: Settings -->
+                        <div class="flex flex-col gap-6">
+                            <!-- Model Selection -->
+                            <div class="bg-surface-2 rounded-2xl border border-surface-3 p-5">
+                                <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">compare</span>
+                                    Chọn Models để so sánh
+                                    <span id="selected-count"
+                                        class="ml-auto text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">0
+                                        selected</span>
+                                </h3>
+                                <p class="text-slate-500 text-sm mb-4">Chọn 2+ model classification để so sánh kết quả
+                                </p>
+                                <div id="model-chips" class="flex flex-wrap gap-2">
+                                    {% for model in all_models %}
+                                    {% if model.type == 'classification' %}
+                                    <button
+                                        class="model-chip flex items-center gap-2 px-3 py-2 rounded-lg border border-surface-3 text-sm transition-all hover:border-primary/50"
+                                        data-model-id="{{ model.id }}" onclick="toggleCompareModel(this)">
+                                        <span
+                                            class="w-2 h-2 rounded-full bg-primary opacity-0 transition-opacity"></span>
+                                        <span>{{ model.name }}</span>
                                     </button>
-                                    <button id="stopCamera"
-                                        class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold transition-colors hidden">
-                                        <span class="material-symbols-outlined text-[18px]">stop</span>
-                                        Stop Camera
-                                    </button>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- Image Upload -->
+                            <div class="bg-surface-2 rounded-2xl border border-surface-3 p-5">
+                                <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">image</span>
+                                    Upload Ảnh
+                                </h3>
+                                <label
+                                    class="flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-surface-3 hover:border-primary/50 bg-surface/50 hover:bg-surface transition-all px-4 py-6 cursor-pointer">
+                                    <input type="file" id="compareImageInput" accept="image/*" class="hidden" />
+                                    <div class="w-12 h-12 rounded-xl bg-surface-3 flex items-center justify-center">
+                                        <span
+                                            class="material-symbols-outlined text-xl text-slate-400">cloud_upload</span>
+                                    </div>
+                                    <p class="text-white text-sm font-medium">Upload ảnh</p>
+                                </label>
+                                <div id="compareImagePreview" class="mt-4 hidden">
+                                    <img id="comparePreviewImg" class="w-full rounded-xl border border-surface-3" />
+                                </div>
+                            </div>
+
+                            <!-- Run Button -->
+                            <button id="runCompareInference" disabled onclick="runCompareInference()"
+                                class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-primary to-accent hover:opacity-90 disabled:from-surface-3 disabled:to-surface-3 disabled:text-slate-500 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-primary/20 disabled:shadow-none">
+                                <span class="material-symbols-outlined text-2xl">compare_arrows</span>
+                                <span>So sánh Models</span>
+                            </button>
+                        </div>
+
+                        <!-- Right: Results -->
+                        <div class="xl:col-span-2 flex flex-col gap-6">
+                            <!-- Ensemble Result -->
+                            <div id="ensemble-card"
+                                class="hidden bg-gradient-to-r from-success/10 to-accent/10 rounded-2xl border border-success/30 p-6">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-12 h-12 rounded-xl bg-success/20 flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-2xl text-success">how_to_vote</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-white font-bold text-lg">Ensemble Voting Result</h3>
+                                        <p class="text-slate-400 text-sm">Kết quả bình chọn từ tất cả models</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div class="bg-surface/50 rounded-xl p-4">
+                                        <p class="text-slate-400 text-xs uppercase mb-1">Predicted Class</p>
+                                        <p id="ensemble-class" class="text-white text-xl font-bold">-</p>
+                                    </div>
+                                    <div class="bg-surface/50 rounded-xl p-4">
+                                        <p class="text-slate-400 text-xs uppercase mb-1">Agreement</p>
+                                        <p id="ensemble-agreement" class="text-success text-xl font-bold">-</p>
+                                    </div>
+                                    <div class="bg-surface/50 rounded-xl p-4">
+                                        <p class="text-slate-400 text-xs uppercase mb-1">Avg Confidence</p>
+                                        <p id="ensemble-conf" class="text-primary text-xl font-bold">-</p>
+                                    </div>
+                                    <div class="bg-surface/50 rounded-xl p-4">
+                                        <p class="text-slate-400 text-xs uppercase mb-1">Agreeing Models</p>
+                                        <p id="ensemble-models" class="text-white text-sm font-medium truncate">-</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stats Bar -->
+                            <div id="compare-stats" class="hidden grid grid-cols-3 gap-4">
+                                <div class="bg-surface-2 rounded-xl p-4 border border-surface-3">
+                                    <div class="flex items-center gap-2 text-slate-400 text-sm mb-1">
+                                        <span class="material-symbols-outlined text-lg text-warning">bolt</span>
+                                        Fastest
+                                    </div>
+                                    <p id="stat-fastest" class="text-white font-bold">-</p>
+                                    <p id="stat-fastest-time" class="text-slate-500 text-xs font-mono">- ms</p>
+                                </div>
+                                <div class="bg-surface-2 rounded-xl p-4 border border-surface-3">
+                                    <div class="flex items-center gap-2 text-slate-400 text-sm mb-1">
+                                        <span class="material-symbols-outlined text-lg text-primary">timer</span>
+                                        Avg Time
+                                    </div>
+                                    <p id="stat-avg-time" class="text-white font-bold font-mono">- ms</p>
+                                </div>
+                                <div class="bg-surface-2 rounded-xl p-4 border border-surface-3">
+                                    <div class="flex items-center gap-2 text-slate-400 text-sm mb-1">
+                                        <span class="material-symbols-outlined text-lg text-success">check_circle</span>
+                                        Success
+                                    </div>
+                                    <p id="stat-success" class="text-white font-bold">-</p>
+                                </div>
+                            </div>
+
+                            <!-- Model Results Grid -->
+                            <div id="compareResultsContainer"
+                                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div
+                                    class="col-span-full flex flex-col items-center justify-center py-16 text-slate-400">
+                                    <span class="material-symbols-outlined text-7xl opacity-20 mb-4">compare</span>
+                                    <p class="text-center">Chọn ít nhất 2 models và upload ảnh<br>để so sánh kết quả</p>
+                                </div>
+                            </div>
+
+                            <!-- Confidence Comparison Chart -->
+                            <div id="chart-container"
+                                class="hidden bg-surface-2 rounded-2xl border border-surface-3 p-6">
+                                <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">bar_chart</span>
+                                    So sánh Confidence
+                                </h3>
+                                <div class="h-64">
+                                    <canvas id="confidence-chart"></canvas>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Run Button -->
-                        <button id="runInference" disabled
-                            class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-blue-600 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-all shadow-lg">
-                            <span class="material-symbols-outlined">play_arrow</span>
-                            <span>Run Inference</span>
-                        </button>
-                    </div>
-
-                    <!-- Right: Results Section -->
-                    <div class="bg-card-dark rounded-xl border border-[#232f48] p-6">
-                        <h3 class="text-white text-lg font-bold mb-4">Results</h3>
-                        <div id="resultsContainer"
-                            class="flex flex-col items-center justify-center min-h-[400px] text-[#92a4c9]">
-                            <span class="material-symbols-outlined text-6xl opacity-20 mb-4">smart_toy</span>
-                            <p>Upload an image and click "Run Inference"</p>
-                        </div>
                     </div>
                 </div>
-                {% else %}
-                <div class="flex flex-col items-center justify-center min-h-[400px] text-center">
-                    <span
-                        class="material-symbols-outlined text-8xl text-[#92a4c9] opacity-20 mb-6">model_training</span>
-                    <h3 class="text-white text-2xl font-bold mb-2">No Model Selected</h3>
-                    <p class="text-[#92a4c9] mb-6">Please select a model from the dashboard to start inference.</p>
-                    <a href="/dashboard"
-                        class="px-6 py-3 bg-primary hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors">
-                        Go to Dashboard
-                    </a>
-                </div>
-                {% endif %}
             </div>
         </main>
     </div>
 
     <script>
-        let imageFile = null;
-        {% if model_info %}
-        const modelId = "{{ model_info.id }}";
-        const modelType = "{{ model_info.type }}";
-        {% else %}
-        const modelId = "";
-        const modelType = "";
-        {% endif %}
+        // ========== STATE ==========
+        let currentMode = 'single';
+        let currentInputSource = 'upload';
+        let singleImageFile = null;
+        let compareImageFile = null;
+        let selectedCompareModels = [];
+        let confidenceChart = null;
+        let cameraStream = null;
+        let realtimeInterval = null;
 
-        // Inference settings
-        let inferenceSettings = {
+        let settings = {
             confidence: 0.5,
             topK: 5,
             iouThreshold: 0.45,
             maxDetections: 100
         };
 
-        // ========== SLIDER HANDLERS ==========
-        // Helper function to update slider gradient
-        function updateSliderGradient(slider, percentage) {
-            slider.style.background = `linear-gradient(to right, #135bec 0%, #135bec ${percentage}%, #232f48 ${percentage}%, #232f48 100%)`;
-        }
+        // ========== MODE SWITCHING ==========
+        function switchMode(mode) {
+            currentMode = mode;
 
-        // Confidence Threshold Slider
-        const confSlider = document.getElementById('conf-threshold');
-        const confValue = document.getElementById('conf-value');
-        if (confSlider) {
-            confSlider.addEventListener('input', function () {
-                const value = this.value / 100;
-                inferenceSettings.confidence = value;
-                confValue.textContent = value.toFixed(2);
-                updateSliderGradient(this, this.value);
-            });
-        }
+            const singleBtn = document.getElementById('mode-single');
+            const compareBtn = document.getElementById('mode-compare');
+            const singleContent = document.getElementById('single-mode-content');
+            const compareContent = document.getElementById('compare-mode-content');
 
-        // Top-K Slider (Classification only)
-        const topkSlider = document.getElementById('topk-slider');
-        const topkValue = document.getElementById('topk-value');
-        if (topkSlider) {
-            topkSlider.addEventListener('input', function () {
-                inferenceSettings.topK = parseInt(this.value);
-                topkValue.textContent = this.value;
-                const percentage = ((this.value - 1) / 9) * 100; // 1-10 range
-                updateSliderGradient(this, percentage);
-            });
-        }
-
-        // IoU Threshold Slider (Detection only)
-        const iouSlider = document.getElementById('iou-threshold');
-        const iouValue = document.getElementById('iou-value');
-        if (iouSlider) {
-            iouSlider.addEventListener('input', function () {
-                const value = this.value / 100;
-                inferenceSettings.iouThreshold = value;
-                iouValue.textContent = value.toFixed(2);
-                updateSliderGradient(this, this.value);
-            });
-        }
-
-        // Max Detections Slider (Detection only)
-        const maxdetSlider = document.getElementById('maxdet-slider');
-        const maxdetValue = document.getElementById('maxdet-value');
-        if (maxdetSlider) {
-            maxdetSlider.addEventListener('input', function () {
-                inferenceSettings.maxDetections = parseInt(this.value);
-                maxdetValue.textContent = this.value;
-                const percentage = ((this.value - 10) / 290) * 100; // 10-300 range
-                updateSliderGradient(this, percentage);
-            });
-        }
-
-        // ========== TAB SWITCHING ==========
-        const tabUpload = document.getElementById('tab-upload');
-        const tabCamera = document.getElementById('tab-camera');
-        const uploadPanel = document.getElementById('upload-panel');
-        const cameraPanel = document.getElementById('camera-panel');
-        const runButton = document.getElementById('runInference');
-
-        let currentMode = 'upload'; // 'upload' or 'camera'
-
-        tabUpload?.addEventListener('click', function () {
-            currentMode = 'upload';
-            // Update tab styles
-            tabUpload.classList.remove('bg-[#232f48]', 'hover:bg-[#2f3e5c]');
-            tabUpload.classList.add('bg-primary');
-            tabCamera.classList.remove('bg-primary');
-            tabCamera.classList.add('bg-[#232f48]', 'hover:bg-[#2f3e5c]');
-
-            // Show/hide panels
-            uploadPanel.classList.remove('hidden');
-            cameraPanel.classList.add('hidden');
-
-            // Stop camera if running
-            stopCameraStream();
-
-            // Update run button
-            runButton.querySelector('span:last-child').textContent = 'Run Inference';
-            checkReadyToRun();
-        });
-
-        tabCamera?.addEventListener('click', function () {
-            currentMode = 'camera';
-            // Update tab styles
-            tabCamera.classList.remove('bg-[#232f48]', 'hover:bg-[#2f3e5c]');
-            tabCamera.classList.add('bg-primary');
-            tabUpload.classList.remove('bg-primary');
-            tabUpload.classList.add('bg-[#232f48]', 'hover:bg-[#2f3e5c]');
-
-            // Show/hide panels
-            cameraPanel.classList.remove('hidden');
-            uploadPanel.classList.add('hidden');
-
-            // Update run button
-            runButton.querySelector('span:last-child').textContent = 'Start Real-time Inference';
-            runButton.disabled = true; // Disabled until camera starts
-        });
-
-        // ========== CAMERA FUNCTIONALITY ==========
-        let cameraStream = null;
-        let cameraRunning = false;
-        let inferenceInterval = null;
-        let lastFrameTime = Date.now();
-        let frameCount = 0;
-        let fps = 0;
-
-        const videoElement = document.getElementById('cameraVideo');
-        const canvasElement = document.getElementById('cameraCanvas');
-        const startCameraBtn = document.getElementById('startCamera');
-        const stopCameraBtn = document.getElementById('stopCamera');
-        const fpsCounter = document.getElementById('fps-counter');
-
-        async function startCameraStream() {
-            try {
-                cameraStream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 },
-                        facingMode: 'user'
-                    }
-                });
-                videoElement.srcObject = cameraStream;
-                cameraRunning = true;
-
-                // Update button visibility
-                startCameraBtn.classList.add('hidden');
-                stopCameraBtn.classList.remove('hidden');
-
-                // Enable run button
-                runButton.disabled = false;
-
-                // Start FPS counter
-                updateFPS();
-            } catch (error) {
-                console.error('Error accessing camera:', error);
-                alert('Failed to access camera. Please check permissions.');
+            if (mode === 'single') {
+                singleBtn.classList.add('bg-primary', 'text-white');
+                singleBtn.classList.remove('text-slate-400');
+                compareBtn.classList.remove('bg-primary', 'text-white');
+                compareBtn.classList.add('text-slate-400');
+                singleContent.classList.remove('hidden');
+                compareContent.classList.add('hidden');
+            } else {
+                compareBtn.classList.add('bg-primary', 'text-white');
+                compareBtn.classList.remove('text-slate-400');
+                singleBtn.classList.remove('bg-primary', 'text-white');
+                singleBtn.classList.add('text-slate-400');
+                compareContent.classList.remove('hidden');
+                singleContent.classList.add('hidden');
             }
         }
 
-        function stopCameraStream() {
+        // ========== INPUT SOURCE ==========
+        function switchInputSource(source) {
+            currentInputSource = source;
+            const uploadTab = document.getElementById('tab-upload');
+            const cameraTab = document.getElementById('tab-camera');
+            const uploadZone = document.getElementById('upload-zone');
+            const cameraZone = document.getElementById('camera-zone');
+
+            // Reset realtime state
+            isRealtimeRunning = false;
+            document.getElementById('runSingleInference').innerHTML = '<span class="material-symbols-outlined text-2xl">play_arrow</span><span>Chạy Inference</span>';
+
+            if (source === 'upload') {
+                uploadTab.classList.add('bg-primary', 'text-white');
+                uploadTab.classList.remove('bg-surface-3', 'text-slate-400');
+                cameraTab.classList.remove('bg-primary', 'text-white');
+                cameraTab.classList.add('bg-surface-3', 'text-slate-400');
+                uploadZone.classList.remove('hidden');
+                cameraZone.classList.add('hidden');
+                stopCamera();
+            } else {
+                cameraTab.classList.add('bg-primary', 'text-white');
+                cameraTab.classList.remove('bg-surface-3', 'text-slate-400');
+                uploadTab.classList.remove('bg-primary', 'text-white');
+                uploadTab.classList.add('bg-surface-3', 'text-slate-400');
+                cameraZone.classList.remove('hidden');
+                uploadZone.classList.add('hidden');
+            }
+            checkSingleReady();
+        }
+
+        // ========== CAMERA ==========
+        let isRealtimeRunning = false;
+        let frameCount = 0;
+        let lastFpsTime = Date.now();
+
+        async function startCamera() {
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 640, height: 480, facingMode: 'environment' }
+                });
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = cameraStream;
+                document.getElementById('startCameraBtn').classList.add('hidden');
+                document.getElementById('stopCameraBtn').classList.remove('hidden');
+                checkSingleReady();
+            } catch (err) {
+                alert('Không thể truy cập camera: ' + err.message);
+            }
+        }
+
+        function stopCamera() {
+            isRealtimeRunning = false;
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
-                videoElement.srcObject = null;
             }
-            cameraRunning = false;
-
-            // Stop real-time inference if running
-            stopRealTimeInference();
-
-            // Update button visibility
-            startCameraBtn.classList.remove('hidden');
-            stopCameraBtn.classList.add('hidden');
-
-            // Disable run button
-            runButton.disabled = true;
-
-            // Reset FPS
-            fps = 0;
-            frameCount = 0;
-            if (fpsCounter) {
-                fpsCounter.querySelector('span').textContent = '0 FPS';
-            }
+            document.getElementById('startCameraBtn')?.classList.remove('hidden');
+            document.getElementById('stopCameraBtn')?.classList.add('hidden');
+            document.getElementById('camera-stats')?.classList.add('hidden');
+            document.getElementById('camera-prediction')?.classList.add('hidden');
+            document.getElementById('runSingleInference').innerHTML = '<span class="material-symbols-outlined text-2xl">play_arrow</span><span>Chạy Inference</span>';
+            const canvas = document.getElementById('cameraCanvas');
+            const ctx = canvas?.getContext('2d');
+            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            checkSingleReady();
         }
 
-        function updateFPS() {
-            if (!cameraRunning) return;
+        // Color palette for detection classes
+        const DETECTION_COLORS = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+            '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'
+        ];
 
-            const now = Date.now();
-            const elapsed = (now - lastFrameTime) / 1000;
+        async function runRealtimeLoop() {
+            if (!isRealtimeRunning || !cameraStream) return;
 
-            if (elapsed >= 1) {
-                fps = Math.round(frameCount / elapsed);
-                if (fpsCounter) {
-                    fpsCounter.querySelector('span').textContent = `${fps} FPS`;
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('cameraCanvas');
+            const modelId = document.getElementById('single-model-select').value;
+            const select = document.getElementById('single-model-select');
+            const modelType = select.options[select.selectedIndex]?.dataset?.type;
+
+            if (!modelId || !video.videoWidth) {
+                if (isRealtimeRunning) requestAnimationFrame(runRealtimeLoop);
+                return;
+            }
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+
+            // Capture frame to blob
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = video.videoWidth;
+            tempCanvas.height = video.videoHeight;
+            tempCanvas.getContext('2d').drawImage(video, 0, 0);
+
+            tempCanvas.toBlob(async (blob) => {
+                if (!isRealtimeRunning) return;
+
+                const formData = new FormData();
+                formData.append('model_id', modelId);
+                formData.append('image', blob, 'frame.jpg');
+                formData.append('confidence_threshold', settings.confidence);
+
+                if (modelType === 'detection') {
+                    formData.append('iou_threshold', settings.iouThreshold);
+                    formData.append('max_detections', settings.maxDetections);
+                } else {
+                    formData.append('top_k', settings.topK);
                 }
-                frameCount = 0;
-                lastFrameTime = now;
-            }
 
-            requestAnimationFrame(updateFPS);
+                const startTime = performance.now();
+
+                try {
+                    const response = await fetch('/api/inference/', { method: 'POST', body: formData });
+                    const data = await response.json();
+                    const latency = Math.round(performance.now() - startTime);
+
+                    if (response.ok && isRealtimeRunning) {
+                        frameCount++;
+                        const now = Date.now();
+                        if (now - lastFpsTime >= 1000) {
+                            document.getElementById('live-fps').textContent = frameCount;
+                            frameCount = 0;
+                            lastFpsTime = now;
+                        }
+                        document.getElementById('live-latency').textContent = latency + 'ms';
+
+                        if (data.model_type === 'classification' && data.top_prediction) {
+                            // Classification: show overlay on video
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            document.getElementById('live-class').textContent = data.top_prediction.class_name || 'Class ' + data.top_prediction.class_id;
+                            document.getElementById('live-conf').textContent = data.top_prediction.confidence.toFixed(1) + '%';
+                        } else if (data.model_type === 'detection') {
+                            // Detection: show annotated image in results container (smoother!)
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            document.getElementById('live-class').textContent = `${data.num_detections || 0} objects`;
+                            document.getElementById('live-conf').textContent = data.detections?.length > 0 ?
+                                data.detections[0].confidence.toFixed(0) + '%' : '-';
+
+                            // Display annotated image in results
+                            if (data.annotated_image) {
+                                document.getElementById('singleResultsContainer').innerHTML = `
+                                    <div class="w-full">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-primary/20 text-primary border border-primary/30">
+                                                ${data.num_detections} objects detected
+                                            </span>
+                                            <span class="text-slate-400 text-sm">${latency}ms</span>
+                                        </div>
+                                        <img src="data:image/jpeg;base64,${data.annotated_image}" class="w-full rounded-xl border border-surface-3" />
+                                    </div>`;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Realtime error:', error);
+                }
+
+                // Use requestAnimationFrame for smoother loop
+                if (isRealtimeRunning) requestAnimationFrame(runRealtimeLoop);
+            }, 'image/jpeg', 0.6);
         }
 
-        startCameraBtn?.addEventListener('click', startCameraStream);
-        stopCameraBtn?.addEventListener('click', stopCameraStream);
+        // ========== SINGLE MODE ==========
+        function onSingleModelChange() {
+            const select = document.getElementById('single-model-select');
+            const selectedOption = select.options[select.selectedIndex];
+            const modelType = selectedOption?.dataset?.type;
 
-        // ========== IMAGE UPLOAD ==========
-        // Image upload handler
+            // Show/hide settings based on model type
+            const topkSetting = document.getElementById('topk-setting');
+            const iouSetting = document.getElementById('iou-setting');
+            const maxdetSetting = document.getElementById('maxdet-setting');
+
+            if (modelType === 'detection') {
+                topkSetting.classList.add('hidden');
+                iouSetting.classList.remove('hidden');
+                maxdetSetting.classList.remove('hidden');
+            } else {
+                topkSetting.classList.remove('hidden');
+                iouSetting.classList.add('hidden');
+                maxdetSetting.classList.add('hidden');
+            }
+
+            checkSingleReady();
+        }
+
         document.getElementById('imageInput')?.addEventListener('change', function (e) {
-            imageFile = e.target.files[0];
-            if (imageFile) {
+            singleImageFile = e.target.files[0];
+            if (singleImageFile) {
                 const reader = new FileReader();
                 reader.onload = function (event) {
                     document.getElementById('previewImg').src = event.target.result;
                     document.getElementById('imagePreview').classList.remove('hidden');
                 };
-                reader.readAsDataURL(imageFile);
-                checkReadyToRun();
+                reader.readAsDataURL(singleImageFile);
+                checkSingleReady();
             }
         });
 
-        function checkReadyToRun() {
-            const btn = document.getElementById('runInference');
-            if (currentMode === 'upload' && imageFile && modelId) {
-                btn.disabled = false;
-            } else if (currentMode === 'camera' && cameraRunning && modelId) {
-                btn.disabled = false;
-            } else {
-                btn.disabled = true;
-            }
+        function checkSingleReady() {
+            const modelId = document.getElementById('single-model-select').value;
+            const hasImage = singleImageFile || (currentInputSource === 'camera' && cameraStream);
+            document.getElementById('runSingleInference').disabled = !(modelId && hasImage);
         }
 
-        // ========== INFERENCE EXECUTION ==========
-        let isRealTimeRunning = false;
-
-        // Run inference
-        document.getElementById('runInference')?.addEventListener('click', async function () {
-            if (currentMode === 'upload') {
-                // Single image inference
-                await runSingleInference();
-            } else if (currentMode === 'camera') {
-                // Toggle real-time inference
-                if (isRealTimeRunning) {
-                    stopRealTimeInference();
-                } else {
-                    startRealTimeInference();
-                }
-            }
-        });
-
         async function runSingleInference() {
-            const resultsContainer = document.getElementById('resultsContainer');
-            resultsContainer.innerHTML = '<div class="flex items-center gap-3"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div><p>Running inference...</p></div>';
+            const modelId = document.getElementById('single-model-select').value;
+            if (!modelId) return;
+
+            // Camera mode = realtime
+            if (currentInputSource === 'camera' && cameraStream) {
+                if (isRealtimeRunning) {
+                    // Stop realtime
+                    isRealtimeRunning = false;
+                    document.getElementById('runSingleInference').innerHTML = '<span class="material-symbols-outlined text-2xl">play_arrow</span><span>Chạy Inference</span>';
+                    document.getElementById('camera-stats')?.classList.add('hidden');
+                    document.getElementById('camera-prediction')?.classList.add('hidden');
+                } else {
+                    // Start realtime
+                    isRealtimeRunning = true;
+                    frameCount = 0;
+                    lastFpsTime = Date.now();
+                    document.getElementById('runSingleInference').innerHTML = '<span class="material-symbols-outlined text-2xl animate-pulse">stop</span><span>Dừng Realtime</span>';
+                    document.getElementById('camera-stats')?.classList.remove('hidden');
+                    document.getElementById('camera-prediction')?.classList.remove('hidden');
+                    document.getElementById('singleResultsContainer').innerHTML = `
+                        <div class="flex flex-col items-center justify-center min-h-[400px] text-slate-400">
+                            <span class="material-symbols-outlined text-7xl text-success mb-4 animate-pulse">sensors</span>
+                            <p class="text-white font-semibold mb-2">Realtime Mode Active</p>
+                            <p class="text-center text-sm">Kết quả hiển thị trực tiếp trên camera</p>
+                        </div>`;
+                    runRealtimeLoop();
+                }
+                return;
+            }
+
+            // Upload mode = single inference
+            if (!singleImageFile) return;
+
+            const container = document.getElementById('singleResultsContainer');
+            container.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+                    <p>Đang xử lý...</p>
+                </div>`;
+
+            const select = document.getElementById('single-model-select');
+            const modelType = select.options[select.selectedIndex]?.dataset?.type;
 
             const formData = new FormData();
             formData.append('model_id', modelId);
-            formData.append('image', imageFile);
+            formData.append('image', singleImageFile);
+            formData.append('confidence_threshold', settings.confidence);
 
-            // Add inference settings
-            formData.append('confidence_threshold', inferenceSettings.confidence);
-            formData.append('top_k', inferenceSettings.topK);
-            formData.append('iou_threshold', inferenceSettings.iouThreshold);
-            formData.append('max_detections', inferenceSettings.maxDetections);
+            if (modelType === 'detection') {
+                formData.append('iou_threshold', settings.iouThreshold);
+                formData.append('max_detections', settings.maxDetections);
+            } else {
+                formData.append('top_k', settings.topK);
+            }
 
             try {
-                const response = await fetch('/api/inference/', {
-                    method: 'POST',
-                    body: formData
-                });
-
+                const response = await fetch('/api/inference/', { method: 'POST', body: formData });
                 const data = await response.json();
 
                 if (response.ok) {
-                    displayResults(data);
+                    displaySingleResults(data);
                 } else {
-                    resultsContainer.innerHTML = `<div class="text-red-400 text-center"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Error: ${data.error}</p></div>`;
+                    container.innerHTML = `<div class="text-danger text-center"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Lỗi: ${data.error}</p></div>`;
                 }
             } catch (error) {
-                resultsContainer.innerHTML = `<div class="text-red-400 text-center"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Error: ${error.message}</p></div>`;
+                container.innerHTML = `<div class="text-danger text-center"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Lỗi: ${error.message}</p></div>`;
             }
         }
 
-        function startRealTimeInference() {
-            isRealTimeRunning = true;
-            runButton.querySelector('span:last-child').textContent = 'Stop Real-time Inference';
-            runButton.classList.remove('bg-primary', 'hover:bg-blue-600');
-            runButton.classList.add('bg-red-600', 'hover:bg-red-700');
-
-            // Run inference loop
-            runRealTimeInference();
-        }
-
-        function stopRealTimeInference() {
-            isRealTimeRunning = false;
-            if (inferenceInterval) {
-                clearTimeout(inferenceInterval);
-                inferenceInterval = null;
-            }
-            runButton.querySelector('span:last-child').textContent = 'Start Real-time Inference';
-            runButton.classList.remove('bg-red-600', 'hover:bg-red-700');
-            runButton.classList.add('bg-primary', 'hover:bg-blue-600');
-        }
-
-        async function runRealTimeInference() {
-            if (!isRealTimeRunning || !cameraRunning) return;
-
-            try {
-                // Capture frame from video
-                const canvas = canvasElement;
-                const video = videoElement;
-
-                // Reduce resolution for faster processing (640px width)
-                const targetWidth = 640;
-                const scale = targetWidth / video.videoWidth;
-                canvas.width = targetWidth;
-                canvas.height = video.videoHeight * scale;
-
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                // Convert canvas to blob with lower quality for speed
-                canvas.toBlob(async (blob) => {
-                    if (!blob || !isRealTimeRunning) return;
-
-                    const formData = new FormData();
-                    formData.append('model_id', modelId);
-                    formData.append('image', blob, 'frame.jpg');
-                    formData.append('confidence_threshold', inferenceSettings.confidence);
-                    formData.append('top_k', inferenceSettings.topK);
-                    formData.append('iou_threshold', inferenceSettings.iouThreshold);
-                    formData.append('max_detections', inferenceSettings.maxDetections);
-
-                    try {
-                        const response = await fetch('/api/inference/', {
-                            method: 'POST',
-                            body: formData
-                        });
-
-                        const data = await response.json();
-
-                        if (response.ok) {
-                            displayResults(data);
-                            frameCount++; // Increment for FPS counter
-                        }
-                    } catch (error) {
-                        console.error('Inference error:', error);
-                    }
-
-                    // Run next inference immediately (no artificial delay!)
-                    if (isRealTimeRunning) {
-                        runRealTimeInference();
-                    }
-                }, 'image/jpeg', 0.6); // Lower quality = faster transfer
-
-            } catch (error) {
-                console.error('Frame capture error:', error);
-                if (isRealTimeRunning) {
-                    // Retry after short delay on error
-                    setTimeout(runRealTimeInference, 100);
-                }
-            }
-        }
-
-        function displayResults(data) {
-            const resultsContainer = document.getElementById('resultsContainer');
-
-            // Display results based on model type
+        function displaySingleResults(data) {
+            const container = document.getElementById('singleResultsContainer');
             let html = `
                 <div class="w-full">
                     <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="bg-[#192233] rounded-lg p-4 border border-[#232f48]">
-                            <p class="text-[#92a4c9] text-xs uppercase mb-1">Inference Time</p>
-                            <p class="text-2xl font-bold text-white font-mono">${data.inference_time_ms}<span class="text-sm text-[#92a4c9] ml-1">ms</span></p>
+                        <div class="bg-surface rounded-xl p-4 border border-surface-3">
+                            <p class="text-slate-400 text-xs uppercase mb-1">Inference Time</p>
+                            <p class="text-2xl font-bold text-white font-mono">${data.inference_time_ms}<span class="text-sm text-slate-400 ml-1">ms</span></p>
                         </div>
-                        <div class="bg-[#192233] rounded-lg p-4 border border-[#232f48]">
-                            <p class="text-[#92a4c9] text-xs uppercase mb-1">Model Type</p>
-                            <p class="text-lg font-bold text-white capitalize">${data.model_type}</p>
+                        <div class="bg-surface rounded-xl p-4 border border-surface-3">
+                            <p class="text-slate-400 text-xs uppercase mb-1">Model</p>
+                            <p class="text-lg font-bold text-white">${data.model_name}</p>
                         </div>
-                    </div>
-            `;
+                    </div>`;
 
-            if (data.model_type === 'classification') {
-                // Classification results
-                if (data.top_prediction) {
-                    html += `
-                        <div class="bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-lg p-4 border border-primary/30 mb-4">
-                            <p class="text-[#92a4c9] text-xs uppercase mb-2">Top Prediction</p>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-white text-2xl font-bold">${data.top_prediction.class_name || 'Class ' + data.top_prediction.class_id}</p>
-                                    <p class="text-[#92a4c9] text-sm">Class ID: ${data.top_prediction.class_id}</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-primary text-3xl font-bold">${data.top_prediction.confidence.toFixed(2)}%</p>
-                                </div>
-                            </div>
+            if (data.model_type === 'classification' && data.top_prediction) {
+                html += `
+                    <div class="bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl p-4 border border-primary/30 mb-4">
+                        <p class="text-slate-400 text-xs uppercase mb-2">Top Prediction</p>
+                        <div class="flex items-center justify-between">
+                            <p class="text-white text-2xl font-bold">${data.top_prediction.class_name || 'Class ' + data.top_prediction.class_id}</p>
+                            <p class="text-primary text-3xl font-bold">${data.top_prediction.confidence.toFixed(1)}%</p>
                         </div>
-                    `;
-                }
+                    </div>`;
 
-                if (data.predictions && data.predictions.length > 0) {
-                    html += `<h4 class="text-white font-bold mb-3">Top ${data.predictions.length} Predictions:</h4><div class="space-y-2">`;
+                if (data.predictions?.length > 0) {
+                    html += `<h4 class="text-white font-semibold mb-3">Top ${data.predictions.length}:</h4><div class="space-y-2">`;
                     data.predictions.forEach((pred, idx) => {
-                        const isTop = idx === 0;
-                        const isBelowThreshold = pred.below_threshold || false;
-                        const opacity = isBelowThreshold ? 'opacity-50' : '';
-                        const borderColor = isTop ? 'border-primary/50' : (isBelowThreshold ? 'border-yellow-500/30' : 'border-[#232f48]');
-
+                        const isBelowThreshold = pred.below_threshold;
                         html += `
-                            <div class="flex items-center gap-3 p-3 bg-[#192233] rounded-lg border ${borderColor} ${opacity} transition-opacity">
-                                <span class="text-[#92a4c9] font-mono text-sm font-bold">#${idx + 1}</span>
+                            <div class="flex items-center gap-3 p-3 bg-surface rounded-xl border ${isBelowThreshold ? 'border-warning/30 opacity-50' : 'border-surface-3'}">
+                                <span class="text-slate-400 font-mono text-sm font-bold">#${idx + 1}</span>
                                 <div class="flex-1">
-                                    <div class="flex items-center gap-2">
-                                        <p class="text-white font-medium">${pred.class_name || 'Class ' + pred.class_id}</p>
-                                        ${isBelowThreshold ? '<span class="material-symbols-outlined text-yellow-500 text-sm" title="Below confidence threshold">warning</span>' : ''}
-                                    </div>
-                                    <div class="w-full bg-[#232f48] rounded-full h-2 mt-1">
-                                        <div class="${isBelowThreshold ? 'bg-yellow-500' : 'bg-primary'} h-2 rounded-full transition-all" style="width: ${pred.confidence}%"></div>
+                                    <p class="text-white font-medium">${pred.class_name || 'Class ' + pred.class_id}</p>
+                                    <div class="w-full bg-surface-3 rounded-full h-1.5 mt-1">
+                                        <div class="${isBelowThreshold ? 'bg-warning' : 'bg-primary'} h-1.5 rounded-full" style="width: ${pred.confidence}%"></div>
                                     </div>
                                 </div>
-                                <span class="${isBelowThreshold ? 'text-yellow-500' : 'text-primary'} font-bold">${pred.confidence.toFixed(2)}%</span>
-                            </div>
-                        `;
+                                <span class="${isBelowThreshold ? 'text-warning' : 'text-primary'} font-bold">${pred.confidence.toFixed(1)}%</span>
+                            </div>`;
                     });
                     html += '</div>';
                 }
             } else if (data.model_type === 'detection') {
-                // Detection results
                 html += `
                     <div class="mb-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <h4 class="text-white font-bold">Detected Objects</h4>
-                            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-primary/20 text-primary border border-primary/30">
-                                ${data.num_detections} objects
-                            </span>
-                        </div>
-                        ${data.annotated_image ? `
-                            <div class="rounded-lg overflow-hidden border border-[#232f48] mb-4">
-                                <img src="data:image/jpeg;base64,${data.annotated_image}" class="w-full" alt="Annotated result" />
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-
-                if (data.detections && data.detections.length > 0) {
-                    html += '<h4 class="text-white font-bold mb-3">Detection Details:</h4><div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">';
-                    data.detections.forEach((det, idx) => {
-                        html += `
-                            <div class="flex items-center gap-3 p-3 bg-[#192233] rounded-lg border border-[#232f48]">
-                                <span class="text-[#92a4c9] font-mono text-sm">#${idx + 1}</span>
-                                <div class="flex-1">
-                                    <p class="text-white font-medium">${det.class_name || 'Class ' + det.class_id}</p>
-                                    <p class="text-[#92a4c9] text-xs">BBox: [${det.bbox.map(v => v.toFixed(0)).join(', ')}]</p>
-                                </div>
-                                <span class="text-primary font-bold">${det.confidence.toFixed(2)}%</span>
-                            </div>
-                        `;
-                    });
-                    html += '</div>';
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold bg-primary/20 text-primary border border-primary/30">
+                            ${data.num_detections} objects detected
+                        </span>
+                    </div>`;
+                if (data.annotated_image) {
+                    html += `<img src="data:image/jpeg;base64,${data.annotated_image}" class="w-full rounded-xl border border-surface-3" />`;
                 }
             }
 
             html += '</div>';
-            resultsContainer.innerHTML = html;
+            container.innerHTML = html;
         }
 
+        // ========== COMPARE MODE ==========
+        function toggleCompareModel(element) {
+            const modelId = element.dataset.modelId;
+            const dot = element.querySelector('span:first-child');
 
-        // System metrics update
+            if (element.classList.contains('selected')) {
+                element.classList.remove('selected');
+                dot.classList.add('opacity-0');
+                selectedCompareModels = selectedCompareModels.filter(id => id !== modelId);
+            } else {
+                element.classList.add('selected');
+                dot.classList.remove('opacity-0');
+                selectedCompareModels.push(modelId);
+            }
+
+            document.getElementById('selected-count').textContent = `${selectedCompareModels.length} selected`;
+            checkCompareReady();
+        }
+
+        document.getElementById('compareImageInput')?.addEventListener('change', function (e) {
+            compareImageFile = e.target.files[0];
+            if (compareImageFile) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    document.getElementById('comparePreviewImg').src = event.target.result;
+                    document.getElementById('compareImagePreview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(compareImageFile);
+                checkCompareReady();
+            }
+        });
+
+        function checkCompareReady() {
+            document.getElementById('runCompareInference').disabled = !(selectedCompareModels.length >= 2 && compareImageFile);
+        }
+
+        async function runCompareInference() {
+            if (selectedCompareModels.length < 2 || !compareImageFile) return;
+
+            const container = document.getElementById('compareResultsContainer');
+            container.innerHTML = `
+                <div class="col-span-full flex items-center justify-center py-16">
+                    <div class="flex items-center gap-3 text-slate-400">
+                        <div class="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+                        <span>Đang chạy ${selectedCompareModels.length} models...</span>
+                    </div>
+                </div>`;
+
+            document.getElementById('ensemble-card').classList.add('hidden');
+            document.getElementById('compare-stats').classList.add('hidden');
+            document.getElementById('chart-container').classList.add('hidden');
+
+            const formData = new FormData();
+            formData.append('model_ids', selectedCompareModels.join(','));
+            formData.append('image', compareImageFile);
+            formData.append('confidence_threshold', settings.confidence);
+            formData.append('top_k', settings.topK);
+
+            try {
+                const response = await fetch('/api/multi-inference/', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    displayCompareResults(data);
+                } else {
+                    container.innerHTML = `<div class="col-span-full text-danger text-center py-16"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Lỗi: ${data.error}</p></div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="col-span-full text-danger text-center py-16"><span class="material-symbols-outlined text-4xl mb-2">error</span><p>Lỗi: ${error.message}</p></div>`;
+            }
+        }
+
+        function displayCompareResults(data) {
+            const container = document.getElementById('compareResultsContainer');
+            const results = data.model_results;
+            const ensemble = data.ensemble;
+            const stats = data.stats;
+
+            // Ensemble card
+            if (ensemble) {
+                document.getElementById('ensemble-card').classList.remove('hidden');
+                document.getElementById('ensemble-class').textContent = ensemble.predicted_class;
+                document.getElementById('ensemble-agreement').textContent = `${ensemble.agreement_percentage}%`;
+                document.getElementById('ensemble-conf').textContent = `${ensemble.average_confidence}%`;
+                document.getElementById('ensemble-models').textContent = ensemble.agreeing_models.join(', ');
+            }
+
+            // Stats
+            if (stats && Object.keys(stats).length > 0) {
+                document.getElementById('compare-stats').classList.remove('hidden');
+                document.getElementById('stat-fastest').textContent = stats.fastest_model;
+                document.getElementById('stat-fastest-time').textContent = `${stats.fastest_time_ms} ms`;
+                document.getElementById('stat-avg-time').textContent = `${stats.average_time_ms} ms`;
+                document.getElementById('stat-success').textContent = `${stats.successful_models}/${stats.total_models}`;
+            }
+
+            // Model cards
+            const winnerClass = ensemble?.predicted_class;
+            container.innerHTML = results.map((r, idx) => {
+                if (r.error) {
+                    return `
+                        <div class="result-card bg-surface-2 rounded-xl border border-danger/30 p-4" style="animation-delay: ${idx * 0.1}s">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="material-symbols-outlined text-danger">error</span>
+                                <h4 class="text-white font-semibold">${r.model_name || r.model_id}</h4>
+                            </div>
+                            <p class="text-danger text-sm">${r.error}</p>
+                        </div>`;
+                }
+
+                const topPred = r.top_prediction;
+                const isWinner = topPred && topPred.class_name === winnerClass;
+                const isFastest = stats && r.model_name === stats.fastest_model;
+
+                return `
+                    <div class="result-card bg-surface-2 rounded-xl border ${isWinner ? 'winner-glow border-success' : 'border-surface-3'} p-4" style="animation-delay: ${idx * 0.1}s">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                ${isWinner ? '<span class="material-symbols-outlined text-success">trophy</span>' : ''}
+                                ${isFastest ? '<span class="material-symbols-outlined text-warning">bolt</span>' : ''}
+                                <h4 class="text-white font-semibold">${r.model_name}</h4>
+                        </div>
+                            <span class="text-slate-500 text-xs font-mono">${r.inference_time_ms}ms</span>
+                        </div>
+                        ${topPred ? `
+                            <div class="bg-surface rounded-lg p-3 mb-3">
+                                <p class="text-slate-400 text-xs mb-1">Top Prediction</p>
+                            <div class="flex items-center justify-between">
+                                    <span class="text-white font-bold">${topPred.class_name || 'Class ' + topPred.class_id}</span>
+                                    <span class="text-primary font-bold">${topPred.confidence.toFixed(1)}%</span>
+                                </div>
+                                </div>
+                            <div class="space-y-1">
+                                ${r.predictions.slice(1, 4).map(p => `
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-slate-400">${p.class_name || 'Class ' + p.class_id}</span>
+                                        <span class="text-slate-500 font-mono">${p.confidence.toFixed(1)}%</span>
+                            </div>
+                                `).join('')}
+                        </div>
+                        ` : ''}
+                    </div>`;
+            }).join('');
+
+            // Confidence chart
+            createConfidenceChart(results);
+        }
+
+        function createConfidenceChart(results) {
+            const validResults = results.filter(r => !r.error && r.top_prediction);
+            if (validResults.length === 0) return;
+
+            document.getElementById('chart-container').classList.remove('hidden');
+            const ctx = document.getElementById('confidence-chart').getContext('2d');
+
+            if (confidenceChart) confidenceChart.destroy();
+
+            const colors = ['#6366f1', '#22d3ee', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+
+            confidenceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: validResults.map(r => r.model_name),
+                    datasets: [{
+                        label: 'Top-1 Confidence (%)',
+                        data: validResults.map(r => r.top_prediction.confidence),
+                        backgroundColor: validResults.map((_, i) => colors[i % colors.length] + '80'),
+                        borderColor: validResults.map((_, i) => colors[i % colors.length]),
+                        borderWidth: 2,
+                        borderRadius: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ========== SETTINGS ==========
+        const confSlider = document.getElementById('conf-threshold');
+        const confValue = document.getElementById('conf-value');
+        confSlider?.addEventListener('input', function () {
+            settings.confidence = this.value / 100;
+            confValue.textContent = settings.confidence.toFixed(2);
+            this.style.setProperty('--value', this.value + '%');
+        });
+
+        const topkSlider = document.getElementById('topk-slider');
+        const topkValue = document.getElementById('topk-value');
+        topkSlider?.addEventListener('input', function () {
+            settings.topK = parseInt(this.value);
+            topkValue.textContent = this.value;
+            this.style.setProperty('--value', ((this.value - 1) / 9) * 100 + '%');
+        });
+
+        // ========== SYSTEM METRICS ==========
+        // ========== SETTINGS SLIDERS ==========
+        document.getElementById('conf-threshold')?.addEventListener('input', function (e) {
+            const value = e.target.value / 100;
+            settings.confidence = value;
+            document.getElementById('conf-value').textContent = value.toFixed(2);
+            e.target.style.setProperty('--value', e.target.value + '%');
+        });
+
+        document.getElementById('topk-slider')?.addEventListener('input', function (e) {
+            settings.topK = parseInt(e.target.value);
+            document.getElementById('topk-value').textContent = e.target.value;
+            e.target.style.setProperty('--value', ((e.target.value - 1) / 9 * 100) + '%');
+        });
+
+        document.getElementById('iou-threshold')?.addEventListener('input', function (e) {
+            const value = e.target.value / 100;
+            settings.iouThreshold = value;
+            document.getElementById('iou-value').textContent = value.toFixed(2);
+            e.target.style.setProperty('--value', e.target.value + '%');
+        });
+
+        document.getElementById('maxdet-slider')?.addEventListener('input', function (e) {
+            settings.maxDetections = parseInt(e.target.value);
+            document.getElementById('maxdet-value').textContent = e.target.value;
+            e.target.style.setProperty('--value', (e.target.value / 300 * 100) + '%');
+        });
+
+        // ========== SYSTEM METRICS ==========
         async function updateSystemMetrics() {
             try {
                 const response = await fetch('/api/system-metrics/');
                 const data = await response.json();
-
-                document.getElementById('cpu-percent-inf').textContent = data.cpu_percent + '%';
-                document.getElementById('cpu-bar-inf').style.width = data.cpu_percent + '%';
-
+                document.getElementById('cpu-percent').textContent = data.cpu_percent + '%';
+                document.getElementById('cpu-bar').style.width = data.cpu_percent + '%';
                 if (data.gpu.name !== 'N/A') {
-                    document.getElementById('gpu-name-inf').textContent = 'GPU Load (' + data.gpu.name + ')';
-                    document.getElementById('gpu-percent-inf').textContent = data.gpu.load + '%';
-                    document.getElementById('gpu-bar-inf').style.width = data.gpu.load + '%';
+                    document.getElementById('gpu-name').textContent = data.gpu.name.split(' ').slice(0, 2).join(' ');
+                    document.getElementById('gpu-percent').textContent = data.gpu.load + '%';
+                    document.getElementById('gpu-bar').style.width = data.gpu.load + '%';
                 }
-            } catch (error) {
-                console.error('Error fetching system metrics:', error);
-            }
+            } catch (error) { }
         }
 
         updateSystemMetrics();
-        setInterval(updateSystemMetrics, 2000);
+        setInterval(updateSystemMetrics, 3000);
+
+        // ========== AUTO-SELECT MODEL FROM URL ==========
+        (function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const modelIdFromUrl = urlParams.get('model_id');
+
+            if (modelIdFromUrl) {
+                const select = document.getElementById('single-model-select');
+                if (select) {
+                    // Find and select the option with matching model_id
+                    for (let option of select.options) {
+                        if (option.value === modelIdFromUrl) {
+                            select.value = modelIdFromUrl;
+                            onSingleModelChange(); // Trigger model change handler
+                            break;
+                        }
+                    }
+                }
+            }
+        })();
     </script>
 </body>
 

@@ -144,6 +144,26 @@ def preprocess_image(image_bytes, target_size=(224, 224), preprocessing_config=N
                 std = np.array(std_vals).reshape((1, 1, 1, 3))
                 
             img_data = (img_data - mean) / std
+        elif normalization == 'caffe':
+            # Caffe-style preprocessing: BGR + mean subtraction (used by ResNet50 in Keras)
+            # Convert RGB to BGR
+            if input_layout == 'NCHW':
+                # [N, C, H, W] -> reverse channel order
+                img_data = img_data[:, ::-1, :, :]
+            else:
+                # [N, H, W, C] -> reverse channel order
+                img_data = img_data[:, :, :, ::-1]
+            
+            # Subtract mean values (BGR order: [103.939, 116.779, 123.68])
+            mean_vals = [103.939, 116.779, 123.68]  # BGR order
+            
+            if input_layout == 'NCHW':
+                mean = np.array(mean_vals).reshape((1, 3, 1, 1))
+            else:
+                # NHWC
+                mean = np.array(mean_vals).reshape((1, 1, 1, 3))
+                
+            img_data = img_data - mean
             
         return img_data.astype(np.float32)
     except Exception as e:

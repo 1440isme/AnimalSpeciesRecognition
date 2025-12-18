@@ -53,12 +53,13 @@ MODELS_CONFIG = [
         'type': 'classification',
         'onnx_path': 'models/resnet50.onnx',
         'description': 'Deep residual networks that allow training of much deeper networks by using skip connections.',
-        'is_ready': False,
+        'is_ready': True,
         'classes': 10,  # animal-10 dataset
         'class_names': ['butterfly', 'cat', 'chicken', 'cow', 'dog', 'elephant', 'horse', 'sheep', 'spider', 'squirrel'],
         'preprocessing': {
             'resize_method': 'center_crop',
-            'normalization': 'imagenet'
+            'normalization': 'caffe',  # Caffe-style: BGR + mean subtraction
+            'input_layout': 'NHWC'  # Model ONNX expects NHWC format
         }
     },
     {

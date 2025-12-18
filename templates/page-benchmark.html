@@ -1,644 +1,1312 @@
 <!DOCTYPE html>
-
 <html class="dark" lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Benchmarking Results - AI Hub</title>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    <title>Benchmarking Studio - AI Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet" />
     <link href="https://fonts.googleapis.com" rel="preconnect" />
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@300;400;500;600;700&amp;display=swap"
-        rel="stylesheet" />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#135bec",
-                        "background-light": "#f6f6f8",
-                        "background-dark": "#111722",
-                        "surface-dark": "#232f48",
+                        "primary": "#6366f1",
+                        "primary-dark": "#4f46e5",
+                        "accent": "#22d3ee",
+                        "surface": "#0f172a",
+                        "surface-2": "#1e293b",
+                        "surface-3": "#334155",
+                        "success": "#10b981",
+                        "warning": "#f59e0b",
+                        "danger": "#ef4444",
                     },
                     fontFamily: {
-                        "display": ["Space Grotesk", "sans-serif"],
-                        "body": ["Noto Sans", "sans-serif"],
+                        "display": ["Outfit", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
                     },
-                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
                 },
             },
         }
     </script>
     <style>
-        /* Custom scrollbar for table */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #111722;
+            background: #0f172a;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #232f48;
-            border-radius: 4px;
+            background: #334155;
+            border-radius: 3px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #3b4c6b;
+            background: #475569;
+        }
+
+        .step-line {
+            background: linear-gradient(90deg, #6366f1 var(--progress), #334155 var(--progress));
+        }
+
+        .glow-primary {
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 40px rgba(99, 102, 241, 0.6);
+            }
+        }
+
+        .animate-pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .dataset-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .model-card.selected {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .confusion-cell {
+            transition: all 0.2s ease;
+        }
+
+        .confusion-cell:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .metric-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
 
-<body
-    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-x-hidden flex flex-col min-h-screen">
-    <!-- TopNavBar -->
-    <header
-        class="sticky top-0 z-50 w-full border-b border-solid border-slate-200 dark:border-[#232f48] bg-white dark:bg-[#111722] px-4 md:px-10 py-3">
-        <div class="flex items-center justify-between whitespace-nowrap">
-            <div class="flex items-center gap-4 text-slate-900 dark:text-white">
-                <div class="size-8 flex items-center justify-center rounded-lg bg-primary text-white">
-                    <span class="material-symbols-outlined text-xl">hub</span>
-                </div>
-                <h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">AI Hub</h2>
-                <div
-                    class="hidden md:flex items-center px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
-                    <div class="w-2 h-2 rounded-full bg-green-500 mr-2 animate-pulse"></div>
-                    <span class="text-xs font-medium text-green-500">System Ready</span>
-                </div>
-            </div>
-            <div class="flex flex-1 justify-end gap-8 items-center">
-                <div class="hidden md:flex items-center gap-9">
-                    <a class="text-slate-600 dark:text-slate-200 text-sm font-medium hover:text-primary transition-colors"
-                        href="/dashboard">Models</a>
-                    <a class="text-primary text-sm font-medium" href="/benchmark">Benchmarks</a>
-                    <a class="text-slate-600 dark:text-slate-200 text-sm font-medium hover:text-primary transition-colors"
-                        href="/inference">Inference</a>
-                    <a class="text-slate-600 dark:text-slate-200 text-sm font-medium hover:text-primary transition-colors"
-                        href="#">Settings</a>
-                </div>
-                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-slate-200 dark:border-[#232f48]"
-                    data-alt="User profile avatar showing abstract geometric pattern"
-                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAEevd9-D0jprhnFFFYvXLwFzTkvSLLaBFmlVFkfpshEyFBT1cl_eOGK6SPqABl7M-t6P8UrPV2yK8Kvjg2qu3e8iwMpPASU9ZUUrjrzL2wZ3bApO3RRsNt_wjjF1Ux9wj9swpAXMtxKYB78XmeK1TPMm_IqvbhMgYlBotBrqXQY7kF-EFNhtcenKfNPNo69GYZuA-wHLrXruGCDa8J9U7hVtBddU2OKN7FeTWz1vdoc0Pr1fTNta2LLqy0Xiw1rLkCbCO01DfDsmu3");'>
-                </div>
-            </div>
-        </div>
-    </header>
-    <main class="flex-1 layout-container flex flex-col w-full max-w-[1440px] mx-auto px-4 md:px-10 py-8 gap-8">
-        <!-- PageHeading -->
-        <div
-            class="flex flex-wrap justify-between gap-4 items-end border-b border-slate-200 dark:border-[#232f48] pb-6">
-            <div class="flex flex-col gap-3 max-w-2xl">
-                <h1 class="text-slate-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">
-                    Benchmarking Results</h1>
-                <p class="text-slate-500 dark:text-[#92a4c9] text-base font-normal leading-normal">
-                    Comparative analysis of YOLOv8m, ViT, VGG16, ResNet50, EfficientNetB0, and YOLOv8m-cls on standard
-                    datasets using Django/Streamlit framework.
-                </p>
-            </div>
-            <div class="flex gap-3">
-                <button
-                    class="flex items-center gap-2 bg-surface-dark hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                    <span class="material-symbols-outlined text-[18px]">download</span>
-                    Export CSV
-                </button>
-                <button
-                    class="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-primary/20">
-                    <span class="material-symbols-outlined text-[18px]">play_arrow</span>
-                    Run New Benchmark
-                </button>
-            </div>
-        </div>
-        <!-- Stats Row -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div
-                class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-surface-dark shadow-sm border border-slate-200 dark:border-transparent">
-                <div class="flex items-center gap-2 text-slate-500 dark:text-[#92a4c9] mb-1">
-                    <span class="material-symbols-outlined text-xl">verified</span>
-                    <p class="text-sm font-medium uppercase tracking-wider">Best Accuracy</p>
-                </div>
-                <p class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold">ViT</p>
-                <div class="flex items-center gap-1 text-green-500 text-sm font-medium mt-1">
-                    <span class="material-symbols-outlined text-sm">trending_up</span>
-                    <span>94.2% Top-1</span>
-                </div>
-            </div>
-            <div
-                class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-surface-dark shadow-sm border border-slate-200 dark:border-transparent">
-                <div class="flex items-center gap-2 text-slate-500 dark:text-[#92a4c9] mb-1">
-                    <span class="material-symbols-outlined text-xl">bolt</span>
-                    <p class="text-sm font-medium uppercase tracking-wider">Fastest Inference</p>
-                </div>
-                <p class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold">YOLOv8m-cls</p>
-                <div class="flex items-center gap-1 text-green-500 text-sm font-medium mt-1">
-                    <span class="material-symbols-outlined text-sm">speed</span>
-                    <span>4ms / frame</span>
-                </div>
-            </div>
-            <div
-                class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-surface-dark shadow-sm border border-slate-200 dark:border-transparent">
-                <div class="flex items-center gap-2 text-slate-500 dark:text-[#92a4c9] mb-1">
-                    <span class="material-symbols-outlined text-xl">memory</span>
-                    <p class="text-sm font-medium uppercase tracking-wider">Avg GPU Usage</p>
-                </div>
-                <p class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold">3.2 GB</p>
-                <div class="flex items-center gap-1 text-slate-500 text-sm font-medium mt-1">
-                    <span>On NVIDIA RTX 3090</span>
-                </div>
-            </div>
-            <div
-                class="flex flex-col gap-2 rounded-xl p-6 bg-white dark:bg-surface-dark shadow-sm border border-slate-200 dark:border-transparent">
-                <div class="flex items-center gap-2 text-slate-500 dark:text-[#92a4c9] mb-1">
-                    <span class="material-symbols-outlined text-xl">analytics</span>
-                    <p class="text-sm font-medium uppercase tracking-wider">Models Compared</p>
-                </div>
-                <p class="text-slate-900 dark:text-white tracking-tight text-3xl font-bold">6</p>
-                <div class="flex items-center gap-1 text-primary text-sm font-medium mt-1">
-                    <span>Active Benchmarks</span>
-                </div>
-            </div>
-        </div>
-        <!-- Main Content Area -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- Sidebar / Filters -->
-            <div class="lg:col-span-3 flex flex-col gap-6">
-                <!-- Hardware Context Card -->
-                <div
-                    class="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-[#1a2333] dark:to-[#111722] rounded-xl p-5 border border-slate-200 dark:border-[#232f48] relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <span class="material-symbols-outlined text-6xl text-white">developer_board</span>
+<body class="bg-surface text-white font-display overflow-hidden">
+    <div class="flex h-screen w-full overflow-hidden">
+        <!-- SIDEBAR -->
+        <aside class="w-72 flex-shrink-0 bg-surface border-r border-surface-3 flex flex-col h-full z-20">
+            <!-- Header -->
+            <div class="p-5 border-b border-surface-3">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent">
+                        <span class="material-symbols-outlined text-xl text-white">hub</span>
                     </div>
-                    <h3 class="text-white text-lg font-bold mb-1">Environment</h3>
-                    <div class="space-y-2 text-sm text-slate-300">
-                        <div class="flex justify-between border-b border-white/10 pb-1">
-                            <span>GPU</span>
-                            <span class="font-mono text-white">RTX 3090</span>
+                    <div class="flex flex-col">
+                        <h1 class="text-white text-lg font-bold tracking-tight">AI Hub</h1>
+                        <p class="text-slate-500 text-xs font-mono">v2.4.0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="flex-1 overflow-y-auto p-4">
+                <nav class="flex flex-col gap-1">
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-surface-2 hover:text-white transition-all"
+                        href="/dashboard">
+                        <span class="material-symbols-outlined text-xl">dashboard</span>
+                        <span class="text-sm font-medium">Dashboard</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-surface-2 hover:text-white transition-all"
+                        href="/inference">
+                        <span class="material-symbols-outlined text-xl">play_arrow</span>
+                        <span class="text-sm font-medium">Inference</span>
+                    </a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/30 transition-all"
+                        href="/benchmark">
+                        <span class="material-symbols-outlined text-xl">speed</span>
+                        <span class="text-sm font-medium">Benchmark Studio</span>
+                    </a>
+                </nav>
+
+                <div class="mt-6 pt-6 border-t border-surface-3">
+                    <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider px-3 mb-3">System</h3>
+                    <!-- CPU -->
+                    <div class="px-3 py-2">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs text-slate-400">CPU</span>
+                            <span id="cpu-percent" class="text-xs font-mono text-white">--%</span>
                         </div>
-                        <div class="flex justify-between border-b border-white/10 pb-1">
-                            <span>CUDA</span>
-                            <span class="font-mono text-white">v11.7</span>
+                        <div class="w-full h-1.5 bg-surface-3 rounded-full overflow-hidden">
+                            <div id="cpu-bar" class="h-full bg-accent rounded-full transition-all duration-300"
+                                style="width: 0%"></div>
                         </div>
-                        <div class="flex justify-between border-b border-white/10 pb-1">
-                            <span>Framework</span>
-                            <span class="font-mono text-white">PyTorch 2.0</span>
+                    </div>
+                    <!-- GPU -->
+                    <div class="px-3 py-2">
+                        <div class="flex justify-between items-center mb-1">
+                            <span id="gpu-name" class="text-xs text-slate-400">GPU</span>
+                            <span id="gpu-percent" class="text-xs font-mono text-white">--%</span>
                         </div>
-                        <div class="flex justify-between">
-                            <span>Batch Size</span>
-                            <span class="font-mono text-white">32</span>
+                        <div class="w-full h-1.5 bg-surface-3 rounded-full overflow-hidden">
+                            <div id="gpu-bar" class="h-full bg-success rounded-full transition-all duration-300"
+                                style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
-                <!-- Filters -->
-                <div
-                    class="bg-white dark:bg-surface-dark rounded-xl p-5 border border-slate-200 dark:border-transparent shadow-sm">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-slate-900 dark:text-white font-bold text-lg">Configuration</h3>
-                        <button class="text-primary text-xs font-medium hover:underline">Reset</button>
-                    </div>
-                    <!-- Metric Toggle -->
-                    <div class="mb-6">
-                        <label
-                            class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 block">Primary
-                            Metric</label>
-                        <div class="flex flex-col gap-2">
-                            <label
-                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
-                                <input checked=""
-                                    class="text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-                                    name="metric" type="radio" />
-                                <span class="text-sm font-medium dark:text-slate-200">Inference Time</span>
-                            </label>
-                            <label
-                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
-                                <input
-                                    class="text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-                                    name="metric" type="radio" />
-                                <span class="text-sm font-medium dark:text-slate-200">Accuracy (Top-1)</span>
-                            </label>
-                            <label
-                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
-                                <input
-                                    class="text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-                                    name="metric" type="radio" />
-                                <span class="text-sm font-medium dark:text-slate-200">GPU Memory</span>
-                            </label>
-                        </div>
-                    </div>
-                    <!-- Model Selection -->
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main
+            class="flex-1 flex flex-col h-full overflow-hidden bg-gradient-to-br from-surface via-surface to-surface-2">
+            <!-- Top Header -->
+            <div class="flex-shrink-0 px-8 py-6 border-b border-surface-3">
+                <div class="flex items-center justify-between">
                     <div>
-                        <label
-                            class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 block">Selected
-                            Models</label>
-                        <div class="flex flex-col gap-2">
-                            <label
-                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors group">
-                                <input checked=""
-                                    class="rounded text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-                                    type="checkbox" />
-                                <div class="flex items-center justify-between w-full">
-                                    <span class="text-sm font-medium dark:text-slate-200">YOLOv8m detect</span>
-                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                                </div>
-                            </label>
-                            <label
-                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
-                                <input checked=""
-                                    class="rounded text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-                                    type="checkbox" />
-                                <div class="flex items-center justify-between w-full">
-                                    <span class="text-sm font-medium dark:text-slate-200">ViT</span>
-                                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
-                                </div>
-                            </label>
-                            <label
-                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
-                                <input checked=""
-                                    class="rounded text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-                                    type="checkbox" />
-                                <div class="flex items-center justify-between w-full">
-                                    <span class="text-sm font-medium dark:text-slate-200">VGG16</span>
-                                    <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                                </div>
-                            </label>
-                            <label
-                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
-                                <input checked=""
-                                    class="rounded text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-                                    type="checkbox" />
-                                <div class="flex items-center justify-between w-full">
-                                    <span class="text-sm font-medium dark:text-slate-200">ResNet50</span>
-                                    <span class="w-2 h-2 rounded-full bg-pink-500"></span>
-                                </div>
-                            </label>
-                            <label
-                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
-                                <input checked=""
-                                    class="rounded text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-                                    type="checkbox" />
-                                <div class="flex items-center justify-between w-full">
-                                    <span class="text-sm font-medium dark:text-slate-200">EfficientNetB0</span>
-                                    <span class="w-2 h-2 rounded-full bg-orange-500"></span>
-                                </div>
-                            </label>
-                            <label
-                                class="flex items-center gap-3 p-2 rounded hover:bg-slate-50 dark:hover:bg-[#2f3e5e] cursor-pointer transition-colors">
-                                <input checked=""
-                                    class="rounded text-primary focus:ring-primary bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600"
-                                    type="checkbox" />
-                                <div class="flex items-center justify-between w-full">
-                                    <span class="text-sm font-medium dark:text-slate-200">YOLOv8m-cls</span>
-                                    <span class="w-2 h-2 rounded-full bg-teal-500"></span>
-                                </div>
-                            </label>
+                        <h1 class="text-2xl font-bold text-white flex items-center gap-3">
+                            <span class="material-symbols-outlined text-primary">science</span>
+                            Benchmarking Studio
+                        </h1>
+                        <p class="text-slate-400 text-sm mt-1">Đánh giá hiệu năng model với dataset thực tế</p>
+                    </div>
+
+                    <!-- Step Indicators -->
+                    <div class="flex items-center gap-2">
+                        <div id="step-indicator-1"
+                            class="flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-white text-sm font-medium">
+                            <span
+                                class="w-6 h-6 flex items-center justify-center rounded-full bg-white/20 text-xs">1</span>
+                            <span>Dataset</span>
+                        </div>
+                        <div class="w-8 h-0.5 bg-surface-3" id="step-line-1"></div>
+                        <div id="step-indicator-2"
+                            class="flex items-center gap-2 px-4 py-2 rounded-full bg-surface-3 text-slate-400 text-sm font-medium">
+                            <span
+                                class="w-6 h-6 flex items-center justify-center rounded-full bg-surface-2 text-xs">2</span>
+                            <span>Models</span>
+                        </div>
+                        <div class="w-8 h-0.5 bg-surface-3" id="step-line-2"></div>
+                        <div id="step-indicator-3"
+                            class="flex items-center gap-2 px-4 py-2 rounded-full bg-surface-3 text-slate-400 text-sm font-medium">
+                            <span
+                                class="w-6 h-6 flex items-center justify-center rounded-full bg-surface-2 text-xs">3</span>
+                            <span>Results</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Charts & Data -->
-            <div class="lg:col-span-9 flex flex-col gap-6">
-                <!-- Chart Area -->
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                    <!-- Inference Time Bar Chart -->
-                    <div
-                        class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-transparent shadow-sm flex flex-col h-full">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-slate-900 dark:text-white font-bold text-lg">Inference Time (ms)</h3>
-                            <button class="text-slate-400 hover:text-primary transition-colors">
-                                <span class="material-symbols-outlined">more_horiz</span>
+
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto p-8">
+                <!-- STEP 1: Select Dataset -->
+                <div id="step-1" class="step-content">
+                    <div class="max-w-5xl mx-auto">
+                        <div class="text-center mb-8">
+                            <h2 class="text-3xl font-bold text-white mb-2">Chọn Dataset</h2>
+                            <p class="text-slate-400">Chọn dataset có sẵn hoặc upload dataset mới để benchmark</p>
+                        </div>
+
+                        <!-- Dataset Grid -->
+                        <div id="datasets-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                            <!-- Loading state -->
+                            <div class="col-span-full flex items-center justify-center py-12">
+                                <div class="flex items-center gap-3 text-slate-400">
+                                    <div
+                                        class="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent">
+                                    </div>
+                                    <span>Đang tải danh sách dataset...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upload Section -->
+                        <div class="border-t border-surface-3 pt-8">
+                            <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">cloud_upload</span>
+                                Upload Dataset Mới
+                            </h3>
+                            <div id="upload-zone"
+                                class="border-2 border-dashed border-surface-3 rounded-2xl p-8 text-center hover:border-primary/50 transition-colors cursor-pointer">
+                                <input type="file" id="dataset-upload" accept=".zip" class="hidden" />
+                                <div class="flex flex-col items-center gap-4">
+                                    <div class="w-16 h-16 rounded-2xl bg-surface-3 flex items-center justify-center">
+                                        <span
+                                            class="material-symbols-outlined text-3xl text-slate-400">folder_zip</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-white font-medium">Kéo thả file ZIP hoặc click để chọn</p>
+                                        <p class="text-slate-500 text-sm mt-1">Cấu trúc: class_name/image.jpg</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="upload-progress" class="hidden mt-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex-1 h-2 bg-surface-3 rounded-full overflow-hidden">
+                                        <div id="upload-bar" class="h-full bg-primary rounded-full transition-all"
+                                            style="width: 0%"></div>
+                                    </div>
+                                    <span id="upload-status" class="text-sm text-slate-400">Uploading...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Next Button -->
+                        <div class="flex justify-end mt-8">
+                            <button id="btn-step1-next" disabled
+                                class="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark disabled:bg-surface-3 disabled:text-slate-500 text-white rounded-xl font-medium transition-all disabled:cursor-not-allowed">
+                                <span>Tiếp tục</span>
+                                <span class="material-symbols-outlined">arrow_forward</span>
                             </button>
-                        </div>
-                        <div class="flex-1 flex flex-col justify-end gap-3 pl-2 relative min-h-[250px]">
-                            <!-- Grid lines -->
-                            <div
-                                class="absolute inset-0 flex flex-col justify-between pointer-events-none text-xs text-slate-400 font-mono opacity-20 z-0">
-                                <div class="border-b border-slate-400 w-full h-0"></div>
-                                <div class="border-b border-slate-400 w-full h-0"></div>
-                                <div class="border-b border-slate-400 w-full h-0"></div>
-                                <div class="border-b border-slate-400 w-full h-0"></div>
-                                <div class="border-b border-slate-400 w-full h-0"></div>
-                            </div>
-                            <!-- Bars -->
-                            <div class="relative z-10 flex flex-col gap-3 w-full">
-                                <!-- Bar Item -->
-                                <div class="flex items-center gap-3 group">
-                                    <div
-                                        class="w-24 text-right text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
-                                        VGG16</div>
-                                    <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                        <div class="h-full bg-purple-500 rounded-full w-[95%]" title="95ms"></div>
-                                    </div>
-                                    <div class="w-10 text-xs font-mono text-slate-400">95ms</div>
-                                </div>
-                                <!-- Bar Item -->
-                                <div class="flex items-center gap-3 group">
-                                    <div
-                                        class="w-24 text-right text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
-                                        ViT</div>
-                                    <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                        <div class="h-full bg-indigo-500 rounded-full w-[70%]" title="70ms"></div>
-                                    </div>
-                                    <div class="w-10 text-xs font-mono text-slate-400">70ms</div>
-                                </div>
-                                <!-- Bar Item -->
-                                <div class="flex items-center gap-3 group">
-                                    <div
-                                        class="w-24 text-right text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
-                                        ResNet50</div>
-                                    <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                        <div class="h-full bg-pink-500 rounded-full w-[45%]" title="45ms"></div>
-                                    </div>
-                                    <div class="w-10 text-xs font-mono text-slate-400">45ms</div>
-                                </div>
-                                <!-- Bar Item -->
-                                <div class="flex items-center gap-3 group">
-                                    <div
-                                        class="w-24 text-right text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
-                                        YOLOv8m det</div>
-                                    <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                        <div class="h-full bg-blue-500 rounded-full w-[15%]" title="15ms"></div>
-                                    </div>
-                                    <div class="w-10 text-xs font-mono text-slate-400">15ms</div>
-                                </div>
-                                <!-- Bar Item -->
-                                <div class="flex items-center gap-3 group">
-                                    <div
-                                        class="w-24 text-right text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
-                                        EfficientNetB0</div>
-                                    <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                        <div class="h-full bg-orange-500 rounded-full w-[12%]" title="12ms"></div>
-                                    </div>
-                                    <div class="w-10 text-xs font-mono text-slate-400">12ms</div>
-                                </div>
-                                <!-- Bar Item -->
-                                <div class="flex items-center gap-3 group">
-                                    <div
-                                        class="w-24 text-right text-xs font-medium text-slate-500 dark:text-slate-400 truncate">
-                                        YOLOv8m-cls</div>
-                                    <div class="flex-1 h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                                        <div class="h-full bg-teal-500 rounded-full w-[4%]" title="4ms"></div>
-                                    </div>
-                                    <div class="w-10 text-xs font-mono text-slate-400">4ms</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Accuracy vs Latency Scatter (Simulated) -->
-                    <div
-                        class="bg-white dark:bg-surface-dark rounded-xl p-6 border border-slate-200 dark:border-transparent shadow-sm flex flex-col h-full">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-slate-900 dark:text-white font-bold text-lg">Top-1 Accuracy vs Latency</h3>
-                            <button class="text-slate-400 hover:text-primary transition-colors">
-                                <span class="material-symbols-outlined">info</span>
-                            </button>
-                        </div>
-                        <div
-                            class="flex-1 relative border-l border-b border-slate-300 dark:border-slate-600 min-h-[250px] mx-2 mb-2">
-                            <!-- Labels -->
-                            <div
-                                class="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 text-xs font-bold text-slate-500 tracking-wider">
-                                ACCURACY</div>
-                            <div
-                                class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs font-bold text-slate-500 tracking-wider">
-                                LATENCY (ms)</div>
-                            <!-- Points -->
-                            <!-- ViT -->
-                            <div
-                                class="absolute top-[5%] right-[30%] w-4 h-4 bg-indigo-500 rounded-full shadow-lg border-2 border-white dark:border-surface-dark group cursor-pointer hover:scale-125 transition-transform z-10">
-                                <div
-                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap z-20">
-                                    ViT (94.2%)</div>
-                            </div>
-                            <!-- VGG16 -->
-                            <div
-                                class="absolute top-[20%] right-[5%] w-4 h-4 bg-purple-500 rounded-full shadow-lg border-2 border-white dark:border-surface-dark group cursor-pointer hover:scale-125 transition-transform z-10">
-                                <div
-                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap z-20">
-                                    VGG16 (89%)</div>
-                            </div>
-                            <!-- ResNet50 -->
-                            <div
-                                class="absolute top-[15%] left-[50%] w-4 h-4 bg-pink-500 rounded-full shadow-lg border-2 border-white dark:border-surface-dark group cursor-pointer hover:scale-125 transition-transform z-10">
-                                <div
-                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap z-20">
-                                    ResNet50 (91%)</div>
-                            </div>
-                            <!-- YOLOv8m Det -->
-                            <div
-                                class="absolute top-[30%] left-[15%] w-4 h-4 bg-blue-500 rounded-full shadow-lg border-2 border-white dark:border-surface-dark group cursor-pointer hover:scale-125 transition-transform z-10">
-                                <div
-                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap z-20">
-                                    YOLOv8m (85%)</div>
-                            </div>
-                            <!-- YOLOv8m Cls -->
-                            <div
-                                class="absolute top-[25%] left-[5%] w-4 h-4 bg-teal-500 rounded-full shadow-lg border-2 border-white dark:border-surface-dark group cursor-pointer hover:scale-125 transition-transform z-10">
-                                <div
-                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap z-20">
-                                    YOLOv8m-cls (87%)</div>
-                            </div>
-                            <!-- EfficientNet -->
-                            <div
-                                class="absolute top-[18%] left-[12%] w-4 h-4 bg-orange-500 rounded-full shadow-lg border-2 border-white dark:border-surface-dark group cursor-pointer hover:scale-125 transition-transform z-10">
-                                <div
-                                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-black text-white text-xs py-1 px-2 rounded whitespace-nowrap z-20">
-                                    EfficientNet (90%)</div>
-                            </div>
-                            <!-- Grid Background -->
-                            <div class="absolute inset-0 grid grid-cols-4 grid-rows-4 pointer-events-none">
-                                <div
-                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
-                                </div>
-                                <div
-                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
-                                </div>
-                                <div
-                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
-                                </div>
-                                <div class="border-b border-slate-300/10 dark:border-slate-600/20"></div>
-                                <div
-                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
-                                </div>
-                                <div
-                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
-                                </div>
-                                <div
-                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
-                                </div>
-                                <div class="border-b border-slate-300/10 dark:border-slate-600/20"></div>
-                                <div
-                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
-                                </div>
-                                <div
-                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
-                                </div>
-                                <div
-                                    class="border-r border-slate-300/10 dark:border-slate-600/20 border-b border-slate-300/10 dark:border-slate-600/20">
-                                </div>
-                                <div class="border-b border-slate-300/10 dark:border-slate-600/20"></div>
-                                <div class="border-r border-slate-300/10 dark:border-slate-600/20"></div>
-                                <div class="border-r border-slate-300/10 dark:border-slate-600/20"></div>
-                                <div class="border-r border-slate-300/10 dark:border-slate-600/20"></div>
-                                <div></div>
-                            </div>
                         </div>
                     </div>
                 </div>
-                <!-- Detailed Table -->
-                <div
-                    class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-transparent shadow-sm overflow-hidden flex flex-col">
-                    <div class="p-6 border-b border-slate-200 dark:border-[#111722] flex justify-between items-center">
-                        <h3 class="text-slate-900 dark:text-white font-bold text-lg">Raw Metrics</h3>
-                        <div class="flex gap-2">
-                            <input
-                                class="bg-slate-100 dark:bg-[#111722] border-none rounded-lg px-4 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-primary w-48"
-                                placeholder="Search model..." type="text" />
+
+                <!-- STEP 2: Select Models -->
+                <div id="step-2" class="step-content hidden">
+                    <div class="max-w-5xl mx-auto">
+                        <div class="text-center mb-8">
+                            <h2 class="text-3xl font-bold text-white mb-2">Chọn Models</h2>
+                            <p class="text-slate-400">Chọn các model bạn muốn so sánh hiệu năng</p>
                         </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead
-                                class="bg-slate-50 dark:bg-[#1a2438] text-slate-500 dark:text-slate-400 text-xs uppercase tracking-wider font-semibold">
-                                <tr>
-                                    <th class="px-6 py-4">Model Name</th>
-                                    <th class="px-6 py-4">Task Type</th>
-                                    <th class="px-6 py-4 text-right cursor-pointer hover:text-primary">
-                                        Inference (ms) <span
-                                            class="material-symbols-outlined align-middle text-sm">arrow_drop_up</span>
-                                    </th>
-                                    <th class="px-6 py-4 text-right">FPS</th>
-                                    <th class="px-6 py-4 text-right">Accuracy (%)</th>
-                                    <th class="px-6 py-4 text-right">GPU Mem (GB)</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-200 dark:divide-[#111722]">
-                                <!-- Row 1 -->
-                                <tr class="hover:bg-slate-50 dark:hover:bg-[#2a3752] transition-colors">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-                                            <span class="font-medium text-slate-900 dark:text-white">YOLOv8m
-                                                detect</span>
+
+                        <!-- Selected Dataset Info -->
+                        <div id="selected-dataset-info" class="glass rounded-2xl p-5 mb-8 border border-surface-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+                                        <span class="material-symbols-outlined text-primary">database</span>
+                                    </div>
+                                    <div>
+                                        <h3 id="dataset-name-display" class="text-white font-semibold">Dataset Name</h3>
+                                        <p id="dataset-stats-display" class="text-slate-400 text-sm">0 images • 0
+                                            classes</p>
+                                    </div>
+                                </div>
+                                <button onclick="goToStep(1)"
+                                    class="text-primary hover:text-primary-dark text-sm font-medium">
+                                    Đổi dataset
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Benchmark Settings -->
+                        <div class="bg-surface-2 rounded-2xl p-5 mb-6 border border-surface-3">
+                            <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-primary">settings</span>
+                                Cài đặt Benchmark
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-slate-400 text-sm mb-2 block">Số ảnh tối đa mỗi class</label>
+                                    <select id="max-images-select"
+                                        class="w-full bg-surface-3 border-none rounded-lg px-4 py-2.5 text-white text-sm focus:ring-2 focus:ring-primary">
+                                        <option value="0">Tất cả ảnh (không giới hạn)</option>
+                                        <option value="20">20 ảnh/class</option>
+                                        <option value="50">50 ảnh/class</option>
+                                        <option value="100">100 ảnh/class</option>
+                                        <option value="200">200 ảnh/class</option>
+
+                                    </select>
+                                    <p class="text-slate-500 text-xs mt-1">Chọn "Tất cả" để benchmark đầy đủ và chính
+                                        xác nhất</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Models Grid -->
+                        <div id="models-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                            {% for model in models %}
+                            {% if model.type == 'classification' %}
+                            <div class="model-card cursor-pointer border border-surface-3 rounded-2xl p-5 hover:border-primary/50 transition-all"
+                                data-model-id="{{ model.id }}" onclick="toggleModelSelection(this)">
+                                <div class="flex items-start gap-4">
+                                    <div
+                                        class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
+                                        <span class="material-symbols-outlined text-2xl text-primary">psychology</span>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <h3 class="text-white font-semibold">{{ model.name }}</h3>
+                                            <div
+                                                class="w-5 h-5 rounded-md border-2 border-surface-3 flex items-center justify-center model-checkbox">
+                                                <span
+                                                    class="material-symbols-outlined text-sm text-primary hidden">check</span>
+                                            </div>
                                         </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">Detection</td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">15.2
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">65
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">85.4%
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">2.1
-                                    </td>
-                                </tr>
-                                <!-- Row 2 -->
-                                <tr
-                                    class="hover:bg-slate-50 dark:hover:bg-[#2a3752] transition-colors bg-slate-50/50 dark:bg-[#232f48]/50">
-                                    <td class="px-6 py-4">
+                                        <p class="text-slate-400 text-sm mb-3 line-clamp-2">{{ model.description }}</p>
                                         <div class="flex items-center gap-3">
-                                            <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
-                                            <span class="font-medium text-slate-900 dark:text-white">ViT (Base)</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">Classification</td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">70.1
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">14
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-green-500 font-bold">94.2%</td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">4.5
-                                    </td>
-                                </tr>
-                                <!-- Row 3 -->
-                                <tr class="hover:bg-slate-50 dark:hover:bg-[#2a3752] transition-colors">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-2 h-2 rounded-full bg-purple-500"></div>
-                                            <span class="font-medium text-slate-900 dark:text-white">VGG16</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">Classification</td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">95.3
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">10
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">89.1%
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">8.2
-                                    </td>
-                                </tr>
-                                <!-- Row 4 -->
-                                <tr
-                                    class="hover:bg-slate-50 dark:hover:bg-[#2a3752] transition-colors bg-slate-50/50 dark:bg-[#232f48]/50">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-2 h-2 rounded-full bg-pink-500"></div>
-                                            <span class="font-medium text-slate-900 dark:text-white">ResNet50</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">Classification</td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">45.8
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">22
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">91.5%
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">3.8
-                                    </td>
-                                </tr>
-                                <!-- Row 5 -->
-                                <tr class="hover:bg-slate-50 dark:hover:bg-[#2a3752] transition-colors">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-2 h-2 rounded-full bg-orange-500"></div>
                                             <span
-                                                class="font-medium text-slate-900 dark:text-white">EfficientNetB0</span>
+                                                class="px-2 py-0.5 bg-primary/20 text-primary text-xs rounded-full font-medium">
+                                                {{ model.type }}</span>
+                                            <span class="text-slate-500 text-xs">{{ model.classes }} classes</span>
                                         </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">Classification</td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">12.4
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">80
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">90.2%
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">1.8
-                                    </td>
-                                </tr>
-                                <!-- Row 6 -->
-                                <tr
-                                    class="hover:bg-slate-50 dark:hover:bg-[#2a3752] transition-colors bg-slate-50/50 dark:bg-[#232f48]/50">
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-2 h-2 rounded-full bg-teal-500"></div>
-                                            <span class="font-medium text-slate-900 dark:text-white">YOLOv8m-cls</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-slate-600 dark:text-slate-300 text-sm">Classification</td>
-                                    <td class="px-6 py-4 text-right font-mono text-green-500 font-bold">4.0</td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">250
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">87.3%
-                                    </td>
-                                    <td class="px-6 py-4 text-right font-mono text-slate-600 dark:text-slate-300">1.5
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Navigation -->
+                        <div class="flex justify-between mt-8">
+                            <button onclick="goToStep(1)"
+                                class="flex items-center gap-2 px-6 py-3 bg-surface-3 hover:bg-surface-2 text-white rounded-xl font-medium transition-all">
+                                <span class="material-symbols-outlined">arrow_back</span>
+                                <span>Quay lại</span>
+                            </button>
+                            <button id="btn-run-benchmark" disabled
+                                class="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-dark disabled:bg-surface-3 disabled:text-slate-500 text-white rounded-xl font-medium transition-all disabled:cursor-not-allowed glow-primary">
+                                <span class="material-symbols-outlined">rocket_launch</span>
+                                <span>Chạy Benchmark</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Results -->
+                <div id="step-3" class="step-content hidden">
+                    <!-- Running State -->
+                    <div id="benchmark-running" class="max-w-2xl mx-auto text-center py-16">
+                        <div
+                            class="w-24 h-24 mx-auto mb-6 rounded-3xl bg-primary/20 flex items-center justify-center animate-pulse-glow">
+                            <span class="material-symbols-outlined text-5xl text-primary">monitoring</span>
+                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-2">Đang chạy Benchmark...</h2>
+                        <p class="text-slate-400 mb-6">Vui lòng chờ trong khi hệ thống đánh giá các model</p>
+                        <div class="w-full max-w-md mx-auto h-2 bg-surface-3 rounded-full overflow-hidden">
+                            <div id="benchmark-progress-bar"
+                                class="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all"
+                                style="width: 10%"></div>
+                        </div>
+                        <p id="benchmark-status" class="text-sm text-slate-500 mt-3">Đang khởi tạo...</p>
+                    </div>
+
+                    <!-- Results Content -->
+                    <div id="benchmark-results" class="hidden">
+                        <div class="max-w-7xl mx-auto">
+                            <!-- Header -->
+                            <div class="flex items-center justify-between mb-8">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                                        <span class="material-symbols-outlined text-success">task_alt</span>
+                                        Kết quả Benchmark
+                                    </h2>
+                                    <p id="results-summary" class="text-slate-400 text-sm mt-1">Đánh giá 5 models trên
+                                        500 ảnh</p>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button onclick="exportResults()"
+                                        class="flex items-center gap-2 px-4 py-2 bg-surface-3 hover:bg-surface-2 text-white rounded-lg text-sm font-medium transition-all">
+                                        <span class="material-symbols-outlined text-lg">download</span>
+                                        Export CSV
+                                    </button>
+                                    <button onclick="startNewBenchmark()"
+                                        class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg text-sm font-medium transition-all">
+                                        <span class="material-symbols-outlined text-lg">replay</span>
+                                        Benchmark Mới
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Quick Stats -->
+                            <div id="quick-stats" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                                <!-- Will be populated dynamically -->
+                            </div>
+
+                            <!-- Charts Grid -->
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                                <!-- Accuracy Comparison Bar Chart -->
+                                <div class="bg-surface-2 rounded-2xl p-6 border border-surface-3">
+                                    <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary">bar_chart</span>
+                                        So sánh Accuracy
+                                    </h3>
+                                    <div class="h-72">
+                                        <canvas id="accuracy-chart"></canvas>
+                                    </div>
+                                </div>
+
+                                <!-- Radar Chart - Multi Metrics -->
+                                <div class="bg-surface-2 rounded-2xl p-6 border border-surface-3">
+                                    <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-accent">radar</span>
+                                        Đa chiều Metrics
+                                    </h3>
+                                    <div class="h-72">
+                                        <canvas id="radar-chart"></canvas>
+                                    </div>
+                                </div>
+
+                                <!-- Inference Time Chart -->
+                                <div class="bg-surface-2 rounded-2xl p-6 border border-surface-3">
+                                    <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-warning">timer</span>
+                                        Inference Time (ms)
+                                    </h3>
+                                    <div class="h-72">
+                                        <canvas id="latency-chart"></canvas>
+                                    </div>
+                                </div>
+
+                                <!-- FPS Chart -->
+                                <div class="bg-surface-2 rounded-2xl p-6 border border-surface-3">
+                                    <h3 class="text-white font-semibold mb-4 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-success">speed</span>
+                                        Throughput (FPS)
+                                    </h3>
+                                    <div class="h-72">
+                                        <canvas id="fps-chart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Confusion Matrix Section -->
+                            <div id="confusion-section"
+                                class="bg-surface-2 rounded-2xl p-6 border border-surface-3 mb-8">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="text-white font-semibold flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-danger">grid_on</span>
+                                        Confusion Matrix
+                                    </h3>
+                                    <select id="confusion-model-select"
+                                        class="bg-surface-3 border-none rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-primary">
+                                        <!-- Options populated dynamically -->
+                                    </select>
+                                </div>
+                                <div id="confusion-matrix-container" class="overflow-x-auto">
+                                    <!-- Confusion matrix rendered here -->
+                                </div>
+                            </div>
+
+                            <!-- Detailed Results Table -->
+                            <div class="bg-surface-2 rounded-2xl border border-surface-3 overflow-hidden">
+                                <div class="p-6 border-b border-surface-3">
+                                    <h3 class="text-white font-semibold flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-primary">table_chart</span>
+                                        Chi tiết Metrics
+                                    </h3>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <thead class="bg-surface-3/50">
+                                            <tr>
+                                                <th
+                                                    class="px-6 py-4 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                                    Model</th>
+                                                <th
+                                                    class="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                                    Accuracy</th>
+                                                <th
+                                                    class="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                                    Precision</th>
+                                                <th
+                                                    class="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                                    Recall</th>
+                                                <th
+                                                    class="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                                    F1-Score</th>
+                                                <th
+                                                    class="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                                    Latency</th>
+                                                <th
+                                                    class="px-6 py-4 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                                    FPS</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="results-table-body" class="divide-y divide-surface-3">
+                                            <!-- Populated dynamically -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
+
+    <script>
+        // ============================================
+        // STATE MANAGEMENT
+        // ============================================
+        let currentStep = 1;
+        let selectedDataset = null;
+        let selectedModels = [];
+        let benchmarkResults = null;
+        let charts = {};
+
+        const STORAGE_KEY = 'benchmark_last_results';
+
+        // ============================================
+        // STEP NAVIGATION
+        // ============================================
+        function goToStep(step) {
+            currentStep = step;
+
+            // Hide all step contents
+            document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+
+            // Show current step
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+
+            // Update step indicators
+            for (let i = 1; i <= 3; i++) {
+                const indicator = document.getElementById(`step-indicator-${i}`);
+                if (i < step) {
+                    indicator.className = 'flex items-center gap-2 px-4 py-2 rounded-full bg-success text-white text-sm font-medium';
+                    indicator.querySelector('span:first-child').innerHTML = '<span class="material-symbols-outlined text-sm">check</span>';
+                } else if (i === step) {
+                    indicator.className = 'flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-white text-sm font-medium';
+                    indicator.querySelector('span:first-child').textContent = i;
+                } else {
+                    indicator.className = 'flex items-center gap-2 px-4 py-2 rounded-full bg-surface-3 text-slate-400 text-sm font-medium';
+                    indicator.querySelector('span:first-child').textContent = i;
+                }
+
+                // Update lines
+                if (i < 3) {
+                    const line = document.getElementById(`step-line-${i}`);
+                    line.className = i < step ? 'w-8 h-0.5 bg-success' : 'w-8 h-0.5 bg-surface-3';
+                }
+            }
+
+            // Step-specific actions
+            if (step === 2 && selectedDataset) {
+                document.getElementById('dataset-name-display').textContent = selectedDataset.name;
+                document.getElementById('dataset-stats-display').textContent =
+                    `${selectedDataset.total_images} ảnh • ${selectedDataset.num_classes} classes`;
+            }
+        }
+
+        // ============================================
+        // DATASET HANDLING
+        // ============================================
+        async function loadDatasets() {
+            try {
+                const response = await fetch('/api/datasets/');
+                const data = await response.json();
+
+                const container = document.getElementById('datasets-container');
+
+                if (data.datasets.length === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full text-center py-12">
+                            <div class="w-16 h-16 mx-auto rounded-2xl bg-surface-3 flex items-center justify-center mb-4">
+                                <span class="material-symbols-outlined text-3xl text-slate-500">folder_off</span>
+                            </div>
+                            <p class="text-slate-400">Chưa có dataset nào</p>
+                            <p class="text-slate-500 text-sm mt-1">Upload dataset mới để bắt đầu</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = data.datasets.map(dataset => `
+                    <div class="dataset-card cursor-pointer bg-surface-2 border border-surface-3 rounded-2xl p-5 transition-all hover:border-primary/50"
+                         data-dataset-id="${dataset.id}" onclick="selectDataset(this, ${JSON.stringify(dataset).replace(/"/g, '&quot;')})">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-accent/20 to-primary/20 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-2xl text-accent">folder_data</span>
+                            </div>
+                            <div class="w-5 h-5 rounded-full border-2 border-surface-3 flex items-center justify-center dataset-radio">
+                                <div class="w-2.5 h-2.5 rounded-full bg-primary hidden"></div>
+                            </div>
+                        </div>
+                        <h3 class="text-white font-semibold mb-1">${dataset.name}</h3>
+                        <p class="text-slate-400 text-sm mb-3">${dataset.total_images} ảnh • ${dataset.num_classes} classes</p>
+                        <div class="flex flex-wrap gap-1">
+                            ${Object.keys(dataset.classes).slice(0, 4).map(cls =>
+                    `<span class="px-2 py-0.5 bg-surface-3 text-slate-400 text-xs rounded-full">${cls}</span>`
+                ).join('')}
+                            ${Object.keys(dataset.classes).length > 4 ? `<span class="px-2 py-0.5 bg-surface-3 text-slate-400 text-xs rounded-full">+${Object.keys(dataset.classes).length - 4}</span>` : ''}
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading datasets:', error);
+                document.getElementById('datasets-container').innerHTML = `
+                    <div class="col-span-full text-center py-12 text-danger">
+                        <span class="material-symbols-outlined text-3xl mb-2">error</span>
+                        <p>Lỗi khi tải danh sách dataset</p>
+                    </div>
+                `;
+            }
+        }
+
+        function selectDataset(element, dataset) {
+            // Remove selection from all
+            document.querySelectorAll('.dataset-card').forEach(card => {
+                card.classList.remove('border-primary', 'bg-primary/5');
+                card.querySelector('.dataset-radio div').classList.add('hidden');
+            });
+
+            // Select this one
+            element.classList.add('border-primary', 'bg-primary/5');
+            element.querySelector('.dataset-radio div').classList.remove('hidden');
+
+            selectedDataset = dataset;
+            document.getElementById('btn-step1-next').disabled = false;
+        }
+
+        // Upload handling
+        document.getElementById('upload-zone').addEventListener('click', () => {
+            document.getElementById('dataset-upload').click();
+        });
+
+        document.getElementById('dataset-upload').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('dataset', file);
+            formData.append('name', file.name.replace('.zip', ''));
+
+            document.getElementById('upload-progress').classList.remove('hidden');
+            document.getElementById('upload-bar').style.width = '30%';
+            document.getElementById('upload-status').textContent = 'Đang upload...';
+
+            try {
+                const response = await fetch('/api/upload-dataset/', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                document.getElementById('upload-bar').style.width = '100%';
+
+                if (response.ok) {
+                    document.getElementById('upload-status').textContent = 'Upload thành công!';
+                    await loadDatasets();
+                } else {
+                    const data = await response.json();
+                    document.getElementById('upload-status').textContent = 'Lỗi: ' + data.error;
+                }
+            } catch (error) {
+                document.getElementById('upload-status').textContent = 'Lỗi kết nối';
+            }
+
+            setTimeout(() => {
+                document.getElementById('upload-progress').classList.add('hidden');
+                document.getElementById('upload-bar').style.width = '0%';
+            }, 3000);
+        });
+
+        // ============================================
+        // MODEL SELECTION
+        // ============================================
+        function toggleModelSelection(element) {
+            const modelId = element.dataset.modelId;
+            const checkbox = element.querySelector('.model-checkbox');
+            const checkIcon = checkbox.querySelector('span');
+
+            if (element.classList.contains('selected')) {
+                element.classList.remove('selected');
+                checkbox.classList.remove('border-primary', 'bg-primary');
+                checkbox.classList.add('border-surface-3');
+                checkIcon.classList.add('hidden');
+                selectedModels = selectedModels.filter(id => id !== modelId);
+            } else {
+                element.classList.add('selected');
+                checkbox.classList.add('border-primary', 'bg-primary');
+                checkbox.classList.remove('border-surface-3');
+                checkIcon.classList.remove('hidden');
+                selectedModels.push(modelId);
+            }
+
+            document.getElementById('btn-run-benchmark').disabled = selectedModels.length === 0;
+        }
+
+        // ============================================
+        // BENCHMARK EXECUTION
+        // ============================================
+        document.getElementById('btn-step1-next').addEventListener('click', () => {
+            if (selectedDataset) {
+                goToStep(2);
+            }
+        });
+
+        document.getElementById('btn-run-benchmark').addEventListener('click', async () => {
+            if (!selectedDataset || selectedModels.length === 0) return;
+
+            goToStep(3);
+            document.getElementById('benchmark-running').classList.remove('hidden');
+            document.getElementById('benchmark-results').classList.add('hidden');
+
+            // Simulate progress
+            let progress = 10;
+            const progressInterval = setInterval(() => {
+                progress = Math.min(progress + Math.random() * 15, 90);
+                document.getElementById('benchmark-progress-bar').style.width = progress + '%';
+                document.getElementById('benchmark-status').textContent =
+                    progress < 30 ? 'Đang tải models...' :
+                        progress < 60 ? 'Đang chạy inference...' :
+                            'Đang tính toán metrics...';
+            }, 500);
+
+            try {
+                const maxImages = parseInt(document.getElementById('max-images-select').value) || 0;
+                const response = await fetch('/api/full-benchmark/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dataset_id: selectedDataset.id,
+                        model_ids: selectedModels,
+                        max_images_per_class: maxImages
+                    })
+                });
+
+                clearInterval(progressInterval);
+                document.getElementById('benchmark-progress-bar').style.width = '100%';
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    benchmarkResults = data;
+                    setTimeout(() => {
+                        displayResults(data);
+                    }, 500);
+                } else {
+                    alert('Benchmark failed: ' + (data.error || 'Unknown error'));
+                    goToStep(2);
+                }
+            } catch (error) {
+                clearInterval(progressInterval);
+                console.error('Benchmark error:', error);
+                alert('Lỗi kết nối khi chạy benchmark');
+                goToStep(2);
+            }
+        });
+
+        // ============================================
+        // RESULTS DISPLAY
+        // ============================================
+        function displayResults(data) {
+            document.getElementById('benchmark-running').classList.add('hidden');
+            document.getElementById('benchmark-results').classList.remove('hidden');
+
+            // Save to localStorage for next visit
+            saveResultsToStorage(data);
+
+            const results = data.results;
+            const dataset = data.dataset;
+
+            // Summary
+            document.getElementById('results-summary').textContent =
+                `Đánh giá ${results.length} models trên ${dataset.total_images} ảnh (${dataset.num_classes} classes)`;
+
+            // Quick Stats
+            const bestAccuracy = results.reduce((a, b) => a.accuracy > b.accuracy ? a : b);
+            const fastestModel = results.reduce((a, b) => a.avg_inference_ms < b.avg_inference_ms ? a : b);
+            const avgAccuracy = (results.reduce((sum, r) => sum + r.accuracy, 0) / results.length).toFixed(1);
+            const avgLatency = (results.reduce((sum, r) => sum + r.avg_inference_ms, 0) / results.length).toFixed(1);
+
+            document.getElementById('quick-stats').innerHTML = `
+                <div class="metric-card bg-surface-2 rounded-xl p-5 border border-surface-3" style="--gradient-start: #10b981; --gradient-end: #22d3ee;">
+                    <div class="flex items-center gap-2 text-slate-400 text-sm mb-2">
+                        <span class="material-symbols-outlined text-success">trophy</span>
+                        Best Accuracy
+                    </div>
+                    <p class="text-2xl font-bold text-white">${bestAccuracy.model_name}</p>
+                    <p class="text-success text-sm font-medium">${bestAccuracy.accuracy}%</p>
+                </div>
+                <div class="metric-card bg-surface-2 rounded-xl p-5 border border-surface-3" style="--gradient-start: #6366f1; --gradient-end: #8b5cf6;">
+                    <div class="flex items-center gap-2 text-slate-400 text-sm mb-2">
+                        <span class="material-symbols-outlined text-primary">bolt</span>
+                        Fastest Model
+                    </div>
+                    <p class="text-2xl font-bold text-white">${fastestModel.model_name}</p>
+                    <p class="text-primary text-sm font-medium">${fastestModel.avg_inference_ms}ms</p>
+                </div>
+                <div class="metric-card bg-surface-2 rounded-xl p-5 border border-surface-3" style="--gradient-start: #f59e0b; --gradient-end: #ef4444;">
+                    <div class="flex items-center gap-2 text-slate-400 text-sm mb-2">
+                        <span class="material-symbols-outlined text-warning">analytics</span>
+                        Avg Accuracy
+                    </div>
+                    <p class="text-2xl font-bold text-white">${avgAccuracy}%</p>
+                    <p class="text-slate-400 text-sm">across all models</p>
+                </div>
+                <div class="metric-card bg-surface-2 rounded-xl p-5 border border-surface-3" style="--gradient-start: #22d3ee; --gradient-end: #06b6d4;">
+                    <div class="flex items-center gap-2 text-slate-400 text-sm mb-2">
+                        <span class="material-symbols-outlined text-accent">timer</span>
+                        Avg Latency
+                    </div>
+                    <p class="text-2xl font-bold text-white">${avgLatency}ms</p>
+                    <p class="text-slate-400 text-sm">per image</p>
+                </div>
+            `;
+
+            // Create Charts
+            createAccuracyChart(results);
+            createRadarChart(results);
+            createLatencyChart(results);
+            createFPSChart(results);
+
+            // Populate confusion matrix dropdown
+            const confSelect = document.getElementById('confusion-model-select');
+            confSelect.innerHTML = results.map((r, i) =>
+                `<option value="${i}">${r.model_name}</option>`
+            ).join('');
+            confSelect.addEventListener('change', () => {
+                renderConfusionMatrix(results[confSelect.value], dataset.class_names);
+            });
+            renderConfusionMatrix(results[0], dataset.class_names);
+
+            // Detailed Table
+            document.getElementById('results-table-body').innerHTML = results.map((r, i) => `
+                <tr class="hover:bg-surface-3/50 transition-colors ${i === 0 ? 'bg-success/5' : ''}">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-2 h-2 rounded-full" style="background: ${getModelColor(i)}"></div>
+                            <span class="font-medium text-white">${r.model_name}</span>
+                            ${i === 0 ? '<span class="text-xs bg-success/20 text-success px-2 py-0.5 rounded-full">Best</span>' : ''}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right font-mono text-white">${r.accuracy}%</td>
+                    <td class="px-6 py-4 text-right font-mono text-slate-300">${r.precision}%</td>
+                    <td class="px-6 py-4 text-right font-mono text-slate-300">${r.recall}%</td>
+                    <td class="px-6 py-4 text-right font-mono text-slate-300">${r.f1_score}%</td>
+                    <td class="px-6 py-4 text-right font-mono text-slate-300">${r.avg_inference_ms}ms</td>
+                    <td class="px-6 py-4 text-right font-mono text-slate-300">${r.fps}</td>
+                </tr>
+            `).join('');
+        }
+
+        function getModelColor(index) {
+            const colors = ['#6366f1', '#22d3ee', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+            return colors[index % colors.length];
+        }
+
+        // ============================================
+        // CHARTS
+        // ============================================
+        function createAccuracyChart(results) {
+            const ctx = document.getElementById('accuracy-chart').getContext('2d');
+
+            if (charts.accuracy) charts.accuracy.destroy();
+
+            charts.accuracy = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: results.map(r => r.model_name),
+                    datasets: [{
+                        label: 'Accuracy (%)',
+                        data: results.map(r => r.accuracy),
+                        backgroundColor: results.map((_, i) => getModelColor(i) + '80'),
+                        borderColor: results.map((_, i) => getModelColor(i)),
+                        borderWidth: 2,
+                        borderRadius: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: Math.max(0, Math.min(...results.map(r => r.accuracy)) - 10),
+                            max: 100,
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createRadarChart(results) {
+            const ctx = document.getElementById('radar-chart').getContext('2d');
+
+            if (charts.radar) charts.radar.destroy();
+
+            charts.radar = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'Speed'],
+                    datasets: results.map((r, i) => ({
+                        label: r.model_name,
+                        data: [r.accuracy, r.precision, r.recall, r.f1_score, Math.min(100, r.fps)],
+                        backgroundColor: getModelColor(i) + '20',
+                        borderColor: getModelColor(i),
+                        borderWidth: 2,
+                        pointBackgroundColor: getModelColor(i),
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: '#94a3b8', usePointStyle: true }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: { color: '#334155' },
+                            grid: { color: '#334155' },
+                            pointLabels: { color: '#94a3b8' },
+                            ticks: { display: false },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        function createLatencyChart(results) {
+            const ctx = document.getElementById('latency-chart').getContext('2d');
+
+            if (charts.latency) charts.latency.destroy();
+
+            // Sort by latency
+            const sorted = [...results].sort((a, b) => a.avg_inference_ms - b.avg_inference_ms);
+
+            charts.latency = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sorted.map(r => r.model_name),
+                    datasets: [{
+                        label: 'Latency (ms)',
+                        data: sorted.map(r => r.avg_inference_ms),
+                        backgroundColor: sorted.map((r, i) => {
+                            const ratio = i / sorted.length;
+                            return ratio < 0.33 ? '#10b98180' : ratio < 0.66 ? '#f59e0b80' : '#ef444480';
+                        }),
+                        borderColor: sorted.map((r, i) => {
+                            const ratio = i / sorted.length;
+                            return ratio < 0.33 ? '#10b981' : ratio < 0.66 ? '#f59e0b' : '#ef4444';
+                        }),
+                        borderWidth: 2,
+                        borderRadius: 8,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#334155' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createFPSChart(results) {
+            const ctx = document.getElementById('fps-chart').getContext('2d');
+
+            if (charts.fps) charts.fps.destroy();
+
+            charts.fps = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: results.map(r => r.model_name),
+                    datasets: [{
+                        data: results.map(r => r.fps),
+                        backgroundColor: results.map((_, i) => getModelColor(i) + 'cc'),
+                        borderColor: '#1e293b',
+                        borderWidth: 3,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#94a3b8', usePointStyle: true }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================
+        // CONFUSION MATRIX
+        // ============================================
+        function renderConfusionMatrix(result, classNames) {
+            const matrix = result.confusion_matrix;
+            const container = document.getElementById('confusion-matrix-container');
+
+            // Find max value for color scaling
+            const maxVal = Math.max(...matrix.flat());
+
+            let html = '<div class="inline-block min-w-full">';
+            html += '<table class="border-collapse">';
+
+            // Header row
+            html += '<tr><th class="p-2"></th>';
+            classNames.forEach(cls => {
+                html += `<th class="p-2 text-xs text-slate-400 font-medium text-center" style="min-width: 60px; writing-mode: vertical-rl; transform: rotate(180deg);">${cls}</th>`;
+            });
+            html += '</tr>';
+
+            // Data rows
+            matrix.forEach((row, i) => {
+                html += `<tr><td class="p-2 text-xs text-slate-400 font-medium text-right pr-3">${classNames[i]}</td>`;
+                row.forEach((val, j) => {
+                    const intensity = maxVal > 0 ? val / maxVal : 0;
+                    const isDiagonal = i === j;
+                    const bgColor = isDiagonal
+                        ? `rgba(16, 185, 129, ${0.2 + intensity * 0.8})`  // Green for correct
+                        : `rgba(239, 68, 68, ${intensity * 0.8})`;        // Red for errors
+
+                    html += `<td class="confusion-cell p-2 text-center text-xs font-mono cursor-pointer rounded" 
+                                style="background: ${val > 0 ? bgColor : 'transparent'}; color: ${intensity > 0.5 ? '#fff' : '#94a3b8'};"
+                                title="${classNames[i]} → ${classNames[j]}: ${val}">
+                                ${val > 0 ? val : '-'}
+                            </td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</table>';
+            html += '<div class="mt-4 flex items-center gap-4 text-xs text-slate-500">';
+            html += '<span>Hàng: Ground Truth</span>';
+            html += '<span>Cột: Predicted</span>';
+            html += '</div>';
+            html += '</div>';
+
+            container.innerHTML = html;
+        }
+
+        // ============================================
+        // EXPORT
+        // ============================================
+        function exportResults() {
+            if (!benchmarkResults) return;
+
+            let csv = 'Model,Accuracy,Precision,Recall,F1-Score,Latency(ms),FPS\n';
+            benchmarkResults.results.forEach(r => {
+                csv += `${r.model_name},${r.accuracy},${r.precision},${r.recall},${r.f1_score},${r.avg_inference_ms},${r.fps}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `benchmark_results_${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ============================================
+        // SYSTEM METRICS
+        // ============================================
+        async function updateSystemMetrics() {
+            try {
+                const response = await fetch('/api/system-metrics/');
+                const data = await response.json();
+
+                document.getElementById('cpu-percent').textContent = data.cpu_percent + '%';
+                document.getElementById('cpu-bar').style.width = data.cpu_percent + '%';
+
+                if (data.gpu.name !== 'N/A') {
+                    document.getElementById('gpu-name').textContent = data.gpu.name.split(' ').slice(0, 2).join(' ');
+                    document.getElementById('gpu-percent').textContent = data.gpu.load + '%';
+                    document.getElementById('gpu-bar').style.width = data.gpu.load + '%';
+                }
+            } catch (error) {
+                console.error('Error fetching system metrics:', error);
+            }
+        }
+
+        // ============================================
+        // LOCAL STORAGE - Save/Load Results
+        // ============================================
+        function saveResultsToStorage(data) {
+            try {
+                const toSave = {
+                    results: data.results,
+                    dataset: data.dataset,
+                    timestamp: new Date().toISOString()
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+            } catch (e) {
+                console.error('Error saving to localStorage:', e);
+            }
+        }
+
+        function loadResultsFromStorage() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    return JSON.parse(saved);
+                }
+            } catch (e) {
+                console.error('Error loading from localStorage:', e);
+            }
+            return null;
+        }
+
+        function clearSavedResults() {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+
+        function showLastResults() {
+            const savedData = loadResultsFromStorage();
+            if (savedData) {
+                benchmarkResults = savedData;
+
+                // Go directly to results step
+                currentStep = 3;
+                document.querySelectorAll('.step-content').forEach(el => el.classList.add('hidden'));
+                document.getElementById('step-3').classList.remove('hidden');
+
+                // Update step indicators to show completed
+                for (let i = 1; i <= 3; i++) {
+                    const indicator = document.getElementById(`step-indicator-${i}`);
+                    if (i < 3) {
+                        indicator.className = 'flex items-center gap-2 px-4 py-2 rounded-full bg-success text-white text-sm font-medium';
+                        indicator.querySelector('span:first-child').innerHTML = '<span class="material-symbols-outlined text-sm">check</span>';
+                    } else {
+                        indicator.className = 'flex items-center gap-2 px-4 py-2 rounded-full bg-primary text-white text-sm font-medium';
+                    }
+                    if (i < 3) {
+                        document.getElementById(`step-line-${i}`).className = 'w-8 h-0.5 bg-success';
+                    }
+                }
+
+                // Hide running, show results
+                document.getElementById('benchmark-running').classList.add('hidden');
+                document.getElementById('benchmark-results').classList.remove('hidden');
+
+                // Display the saved results
+                displayResults(savedData);
+
+                // Add timestamp info
+                const timestamp = new Date(savedData.timestamp);
+                const timeAgo = getTimeAgo(timestamp);
+                document.getElementById('results-summary').innerHTML =
+                    `Đánh giá ${savedData.results.length} models trên ${savedData.dataset.total_images} ảnh 
+                    <span class="text-slate-500">• Lần cuối: ${timeAgo}</span>`;
+
+                return true;
+            }
+            return false;
+        }
+
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'vừa xong';
+            if (diffMins < 60) return `${diffMins} phút trước`;
+            if (diffHours < 24) return `${diffHours} giờ trước`;
+            return `${diffDays} ngày trước`;
+        }
+
+        function startNewBenchmark() {
+            // Reset state
+            selectedDataset = null;
+            selectedModels = [];
+            benchmarkResults = null;
+
+            // Reset UI
+            document.querySelectorAll('.model-card').forEach(card => {
+                card.classList.remove('selected');
+                const checkbox = card.querySelector('.model-checkbox');
+                checkbox.classList.remove('border-primary', 'bg-primary');
+                checkbox.classList.add('border-surface-3');
+                checkbox.querySelector('span').classList.add('hidden');
+            });
+
+            document.querySelectorAll('.dataset-card').forEach(card => {
+                card.classList.remove('border-primary', 'bg-primary/5');
+                card.querySelector('.dataset-radio div').classList.add('hidden');
+            });
+
+            document.getElementById('btn-step1-next').disabled = true;
+            document.getElementById('btn-run-benchmark').disabled = true;
+
+            // Go to step 1
+            goToStep(1);
+        }
+
+        // ============================================
+        // INIT
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check for saved results first
+            const hasLastResults = showLastResults();
+
+            // Always load datasets for when user wants new benchmark
+            loadDatasets();
+
+            updateSystemMetrics();
+            setInterval(updateSystemMetrics, 3000);
+        });
+    </script>
 </body>
 
 </html>
