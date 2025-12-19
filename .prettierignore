@@ -1,4 +1,0 @@
-# Ignore Django templates to prevent breaking template tags
-templates/
-*.html
-

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html lang="en" class="dark">
 
 <head>
     <meta charset="utf-8" />
@@ -23,9 +23,9 @@
                         "primary": "#6366f1",
                         "primary-dark": "#4f46e5",
                         "accent": "#22d3ee",
-                        "surface": "#0f172a",
-                        "surface-2": "#1e293b",
-                        "surface-3": "#334155",
+                        "surface": "var(--surface)",
+                        "surface-2": "var(--surface-2)",
+                        "surface-3": "var(--surface-3)",
                         "success": "#10b981",
                         "warning": "#f59e0b",
                         "danger": "#ef4444",
@@ -39,26 +39,57 @@
         }
     </script>
     <style>
+        /* Theme CSS Variables */
+        :root {
+            --surface: #f8fafc;
+            --surface-2: #f1f5f9;
+            --surface-3: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --scrollbar-track: #f1f5f9;
+            --scrollbar-thumb: #cbd5e1;
+            --scrollbar-thumb-hover: #94a3b8;
+            --glass-bg: rgba(241, 245, 249, 0.8);
+            --card-shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        .dark {
+            --surface: #0f172a;
+            --surface-2: #1e293b;
+            --surface-3: #334155;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #334155;
+            --scrollbar-track: #0f172a;
+            --scrollbar-thumb: #334155;
+            --scrollbar-thumb-hover: #475569;
+            --glass-bg: rgba(30, 41, 59, 0.7);
+            --card-shadow: rgba(0, 0, 0, 0.3);
+        }
+
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #0f172a;
+            background: var(--scrollbar-track);
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #334155;
+            background: var(--scrollbar-thumb);
             border-radius: 3px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
+            background: var(--scrollbar-thumb-hover);
         }
 
         .step-line {
-            background: linear-gradient(90deg, #6366f1 var(--progress), #334155 var(--progress));
+            background: linear-gradient(90deg, #6366f1 var(--progress), var(--surface-3) var(--progress));
         }
 
         .glow-primary {
@@ -66,7 +97,7 @@
         }
 
         .glass {
-            background: rgba(30, 41, 59, 0.7);
+            background: var(--glass-bg);
             backdrop-filter: blur(12px);
         }
 
@@ -88,7 +119,7 @@
 
         .dataset-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 30px var(--card-shadow);
         }
 
         .model-card.selected {
@@ -135,6 +166,172 @@
                 transform: translateY(0);
             }
         }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            position: relative;
+            width: 56px;
+            height: 28px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 2px;
+        }
+
+        .dark .theme-toggle {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .theme-toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .dark .theme-toggle-thumb {
+            left: calc(100% - 26px);
+            background: #1e293b;
+        }
+
+        .theme-toggle-thumb .material-symbols-outlined {
+            font-size: 14px;
+            color: #f59e0b;
+        }
+
+        .dark .theme-toggle-thumb .material-symbols-outlined {
+            color: #a5b4fc;
+        }
+
+        /* Light mode: show sun, hide moon */
+        html:not(.dark) .theme-icon-sun {
+            display: flex;
+        }
+
+        html:not(.dark) .theme-icon-moon {
+            display: none;
+        }
+
+        html:not(.dark) .theme-icon-light {
+            display: block;
+        }
+
+        html:not(.dark) .theme-icon-dark {
+            display: none;
+        }
+
+        /* Dark mode: show moon, hide sun */
+        html.dark .theme-icon-sun {
+            display: none;
+        }
+
+        html.dark .theme-icon-moon {
+            display: flex;
+        }
+
+        html.dark .theme-icon-light {
+            display: none;
+        }
+
+        html.dark .theme-icon-dark {
+            display: block;
+        }
+
+        /* Light mode specific text colors */
+        .text-adaptive {
+            color: var(--text-primary);
+        }
+
+        .text-adaptive-secondary {
+            color: var(--text-secondary);
+        }
+
+        .text-adaptive-muted {
+            color: var(--text-muted);
+        }
+
+        /* Light mode overrides for white text */
+        html:not(.dark) .text-white {
+            color: var(--text-primary) !important;
+        }
+
+        html:not(.dark) .bg-surface {
+            background-color: var(--surface) !important;
+        }
+
+        html:not(.dark) .bg-surface-2 {
+            background-color: var(--surface-2) !important;
+        }
+
+        html:not(.dark) .bg-surface-3 {
+            background-color: var(--surface-3) !important;
+        }
+
+        html:not(.dark) .border-surface-3 {
+            border-color: var(--border-color) !important;
+        }
+
+        /* Light mode sidebar adjustments */
+        html:not(.dark) aside {
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+            border-right-color: var(--border-color);
+        }
+
+        html:not(.dark) .from-surface {
+            --tw-gradient-from: var(--surface) !important;
+        }
+
+        html:not(.dark) .to-surface-2 {
+            --tw-gradient-to: var(--surface-2) !important;
+        }
+
+        html:not(.dark) .via-surface {
+            --tw-gradient-via: var(--surface) !important;
+        }
+
+        /* Keep primary colors visible on light background */
+        html:not(.dark) .text-primary {
+            color: #4f46e5 !important;
+        }
+
+        /* Chart backgrounds for light mode */
+        html:not(.dark) canvas {
+            filter: none;
+        }
+
+        /* Table headers in light mode */
+        html:not(.dark) thead {
+            background-color: var(--surface-2) !important;
+        }
+
+        /* Smooth transition for theme change */
+        html {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body,
+        aside,
+        main,
+        .bg-surface,
+        .bg-surface-2,
+        .bg-surface-3 {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
     </style>
 </head>
 
@@ -151,7 +348,7 @@
                     </div>
                     <div class="flex flex-col">
                         <h1 class="text-white text-lg font-bold tracking-tight">AI Hub</h1>
-                        <p class="text-slate-500 text-xs font-mono">v2.4.0</p>
+                        <p class="text-slate-500 text-xs font-mono">v1.0</p>
                     </div>
                 </div>
             </div>
@@ -175,6 +372,28 @@
                         <span class="text-sm font-medium">Benchmark Studio</span>
                     </a>
                 </nav>
+
+                <!-- Theme Toggle -->
+                <div class="mt-6 pt-6 border-t border-surface-3">
+                    <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider px-3 mb-3">Appearance</h3>
+                    <div class="px-3 py-2">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="material-symbols-outlined text-lg text-slate-400 theme-icon-light">light_mode</span>
+                                <span
+                                    class="material-symbols-outlined text-lg text-slate-400 theme-icon-dark hidden">dark_mode</span>
+                                <span class="text-sm text-slate-400 theme-label">Dark Mode</span>
+                            </div>
+                            <button onclick="toggleTheme()" class="theme-toggle" aria-label="Toggle theme">
+                                <div class="theme-toggle-thumb">
+                                    <span class="material-symbols-outlined theme-icon-sun">light_mode</span>
+                                    <span class="material-symbols-outlined theme-icon-moon hidden">dark_mode</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="mt-6 pt-6 border-t border-surface-3">
                     <h3 class="text-slate-500 text-xs font-bold uppercase tracking-wider px-3 mb-3">System</h3>
@@ -925,11 +1144,21 @@
             return colors[index % colors.length];
         }
 
+        function getChartColors() {
+            const isDark = document.documentElement.classList.contains('dark');
+            return {
+                grid: isDark ? '#334155' : '#e2e8f0',
+                text: isDark ? '#94a3b8' : '#64748b',
+                border: isDark ? '#1e293b' : '#f1f5f9'
+            };
+        }
+
         // ============================================
         // CHARTS
         // ============================================
         function createAccuracyChart(results) {
             const ctx = document.getElementById('accuracy-chart').getContext('2d');
+            const colors = getChartColors();
 
             if (charts.accuracy) charts.accuracy.destroy();
 
@@ -957,12 +1186,12 @@
                             beginAtZero: false,
                             min: Math.max(0, Math.min(...results.map(r => r.accuracy)) - 10),
                             max: 100,
-                            grid: { color: '#334155' },
-                            ticks: { color: '#94a3b8' }
+                            grid: { color: colors.grid },
+                            ticks: { color: colors.text }
                         },
                         x: {
                             grid: { display: false },
-                            ticks: { color: '#94a3b8' }
+                            ticks: { color: colors.text }
                         }
                     }
                 }
@@ -971,6 +1200,7 @@
 
         function createRadarChart(results) {
             const ctx = document.getElementById('radar-chart').getContext('2d');
+            const colors = getChartColors();
 
             if (charts.radar) charts.radar.destroy();
 
@@ -993,14 +1223,14 @@
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: { color: '#94a3b8', usePointStyle: true }
+                            labels: { color: colors.text, usePointStyle: true }
                         }
                     },
                     scales: {
                         r: {
-                            angleLines: { color: '#334155' },
-                            grid: { color: '#334155' },
-                            pointLabels: { color: '#94a3b8' },
+                            angleLines: { color: colors.grid },
+                            grid: { color: colors.grid },
+                            pointLabels: { color: colors.text },
                             ticks: { display: false },
                             suggestedMin: 0,
                             suggestedMax: 100
@@ -1012,6 +1242,7 @@
 
         function createLatencyChart(results) {
             const ctx = document.getElementById('latency-chart').getContext('2d');
+            const colors = getChartColors();
 
             if (charts.latency) charts.latency.destroy();
 
@@ -1046,12 +1277,12 @@
                     },
                     scales: {
                         x: {
-                            grid: { color: '#334155' },
-                            ticks: { color: '#94a3b8' }
+                            grid: { color: colors.grid },
+                            ticks: { color: colors.text }
                         },
                         y: {
                             grid: { display: false },
-                            ticks: { color: '#94a3b8' }
+                            ticks: { color: colors.text }
                         }
                     }
                 }
@@ -1060,6 +1291,7 @@
 
         function createFPSChart(results) {
             const ctx = document.getElementById('fps-chart').getContext('2d');
+            const colors = getChartColors();
 
             if (charts.fps) charts.fps.destroy();
 
@@ -1070,7 +1302,7 @@
                     datasets: [{
                         data: results.map(r => r.fps),
                         backgroundColor: results.map((_, i) => getModelColor(i) + 'cc'),
-                        borderColor: '#1e293b',
+                        borderColor: colors.border,
                         borderWidth: 3,
                     }]
                 },
@@ -1081,7 +1313,7 @@
                     plugins: {
                         legend: {
                             position: 'right',
-                            labels: { color: '#94a3b8', usePointStyle: true }
+                            labels: { color: colors.text, usePointStyle: true }
                         }
                     }
                 }
@@ -1292,6 +1524,50 @@
             // Go to step 1
             goToStep(1);
         }
+
+        // ============================================
+        // THEME TOGGLE
+        // ============================================
+        const THEME_KEY = 'aihub_theme';
+
+        function initTheme() {
+            const savedTheme = localStorage.getItem(THEME_KEY);
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (savedTheme === 'light') {
+                document.documentElement.classList.remove('dark');
+                updateThemeUI(false);
+            } else if (savedTheme === 'dark' || prefersDark) {
+                document.documentElement.classList.add('dark');
+                updateThemeUI(true);
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+            updateThemeUI(isDark);
+
+            // Refresh charts if results exist
+            if (benchmarkResults && benchmarkResults.results) {
+                setTimeout(() => {
+                    createAccuracyChart(benchmarkResults.results);
+                    createRadarChart(benchmarkResults.results);
+                    createLatencyChart(benchmarkResults.results);
+                    createFPSChart(benchmarkResults.results);
+                }, 100);
+            }
+        }
+
+        function updateThemeUI(isDark) {
+            const label = document.querySelector('.theme-label');
+            if (label) {
+                label.textContent = isDark ? 'Dark Mode' : 'Light Mode';
+            }
+        }
+
+        // Initialize theme immediately
+        initTheme();
 
         // ============================================
         // INIT
